@@ -375,7 +375,7 @@
             list-style: none;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 20px;
         }
 
@@ -383,53 +383,27 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 16px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 400;
             color: #e5e7eb;
-            padding: 9px 12px;
-            background: #0f1117;
-            border-radius: 6px;
-            border: 1px solid #1e2230;
+            padding: 2px 0;
         }
 
         .modal-fields li.field-locked {
-            border-color: #475569;
-            background: #121826;
+            color: #f1f5f9;
         }
 
         .field-name {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .field-icon {
-            color: #6b7280;
-            font-size: 14px;
-            width: 18px;
-            text-align: center;
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
 
         .field-status {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            padding: 3px 8px;
+            color: #fbbf24;
             font-size: 12px;
             font-weight: 600;
             white-space: nowrap;
-        }
-
-        .field-status-locked {
-            background: #1f2937;
-            color: #fbbf24;
-        }
-
-        .field-status-open {
-            background: #0f1f17;
-            color: #4ade80;
         }
 
         .modal-close {
@@ -608,26 +582,78 @@
 
     <script>
         const allFields = [
-            "Наименование камеры",
-            "IP-адрес",
-            "Модель",
-            "Производитель",
-            "Геопозиция (координаты)",
-            "Адрес установки",
-            "MAC-адрес",
-            "Серийный номер",
-            "Версия прошивки",
-            "Статус подключения",
-            "Дата последнего обновления",
-            "Комментарий"
+            "camera.id",
+            "camera.externalIid",
+            "camera.name",
+            "camera.result.purpose",
+            "camera.jsonb.description",
+            "camera.jsonb.providerUuid",
+            "camera.jsonb.kindId",
+            "camera.city",
+            "camera.streetAddress",
+            "camera.postalCode",
+            "camera.operationalStatus",
+            "camera.jsonb.active",
+            "camera.isInRepair",
+            "camera.blockedUntil",
+            "camera.timezone",
+            "camera.location",
+            "camera.ipAddress",
+            "camera.azimuth",
+            "camera.viewAngle",
+            "camera.model",
+            "camera.icon",
+            "camera.isOnvif",
+            "camera.result.showNameLabel",
+            "camera.result.tagIds",
+            "camera.result.tagNames",
+            "camera.result.treeNodeId",
+            "camera.updatedAt",
+            "camera.status",
+            "camera.externalSystem",
+            "stream.id",
+            "stream.name",
+            "stream.cameraId",
+            "stream.streamUrl",
+            "stream.streamType",
+            "stream.videoServerId",
+            "stream.retentionSeconds",
+            "stream.calibration.rectangleHeight",
+            "stream.calibration.rectangleWidth",
+            "stream.calibration.rectanglePoints",
+            "stream.calibration.projectionMatrix",
+            "stream.updatedAt"
         ];
 
-        const lockedFieldsBySystem = {
-            "sys-1": ["IP-адрес", "Модель", "Геопозиция (координаты)", "MAC-адрес", "Серийный номер", "Версия прошивки"],
-            "sys-2": ["IP-адрес", "Геопозиция (координаты)", "Адрес установки", "Статус подключения"],
-            "sys-3": ["Модель", "Производитель", "MAC-адрес", "Серийный номер"],
-            "sys-4": ["Наименование камеры", "IP-адрес", "Адрес установки", "Комментарий"]
-        };
+        const lockedFields = new Set([
+            "camera.id",
+            "camera.externalIid",
+            "camera.name",
+            "camera.result.purpose",
+            "camera.jsonb.description",
+            "camera.jsonb.providerUuid",
+            "camera.jsonb.kindId",
+            "camera.operationalStatus",
+            "camera.jsonb.active",
+            "camera.location",
+            "camera.ipAddress",
+            "camera.azimuth",
+            "camera.viewAngle",
+            "camera.icon",
+            "camera.isOnvif",
+            "camera.result.treeNodeId",
+            "camera.updatedAt",
+            "camera.status",
+            "camera.externalSystem",
+            "stream.id",
+            "stream.name",
+            "stream.cameraId",
+            "stream.streamUrl",
+            "stream.streamType",
+            "stream.videoServerId",
+            "stream.retentionSeconds",
+            "stream.updatedAt"
+        ]);
 
         document.addEventListener("click", function(e) {
             if (!e.target.closest(".dropdown-wrapper")) {
@@ -663,9 +689,8 @@
             document.getElementById("fieldsModal").classList.add("show");
         }
 
-        function renderFields(systemId) {
+        function renderFields() {
             const fieldsList = document.getElementById("fieldsList");
-            const lockedFields = new Set(lockedFieldsBySystem[systemId] || []);
             fieldsList.innerHTML = "";
 
             allFields.forEach(fieldName => {
@@ -673,13 +698,8 @@
                 const item = document.createElement("li");
                 item.className = isLocked ? "field-locked" : "";
                 item.innerHTML = `
-                    <span class="field-name">
-                        <span class="field-icon">${isLocked ? "🔒" : "•"}</span>
-                        ${fieldName}
-                    </span>
-                    <span class="field-status ${isLocked ? "field-status-locked" : "field-status-open"}">
-                        ${isLocked ? "Заблокировано" : "Доступно"}
-                    </span>
+                    <span class="field-name">${fieldName}</span>
+                    ${isLocked ? '<span class="field-status">Заблокировано</span>' : ""}
                 `;
                 fieldsList.appendChild(item);
             });
