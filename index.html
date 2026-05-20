@@ -516,8 +516,35 @@
             font-weight: 700;
         }
 
+        .history-controls {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 14px;
+            background: #111827;
+            border: 1px solid #262a36;
+            border-radius: 10px;
+        }
+
+        .history-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-filter label {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .history-filter-actions {
+            align-self: end;
+        }
+
         .history-table {
-            min-width: 860px;
+            min-width: 780px;
         }
 
         .history-table td {
@@ -528,6 +555,44 @@
         .history-table .numeric-cell {
             text-align: right;
             font-variant-numeric: tabular-nums;
+        }
+
+        .history-table .sortable-header {
+            padding: 0;
+        }
+
+        .sort-button {
+            width: 100%;
+            min-height: 38px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 12px;
+            border: none;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
+        .sort-button:hover {
+            color: #60a5fa;
+            background: #1e2230;
+        }
+
+        .sort-button.numeric-sort {
+            justify-content: flex-end;
+        }
+
+        .sort-indicator {
+            color: #60a5fa;
+            font-size: 11px;
         }
 
         .error-details {
@@ -551,8 +616,8 @@
         }
 
         @media (max-width: 768px) {
-            thead th:nth-child(2),
-            tbody td:nth-child(2) {
+            .sources-table thead th:nth-child(2),
+            .sources-table tbody td:nth-child(2) {
                 display: none;
             }
 
@@ -568,6 +633,14 @@
 
             .history-summary {
                 grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+
+            .history-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .history-filter-actions {
+                align-self: stretch;
             }
 
             .modal-actions {
@@ -592,7 +665,7 @@
         </div>
 
         <div class="table-wrapper">
-            <table>
+            <table class="sources-table">
                 <thead>
                     <tr>
                         <th>Наименование</th>
@@ -728,6 +801,40 @@
             <div class="modal-title">История синхронизаций</div>
             <div class="modal-subtitle" id="historyModalSystem">Источник: -</div>
             <div class="history-summary" id="historySummary"></div>
+            <div class="history-controls">
+                <div class="history-filter">
+                    <label for="historyStartedFrom">Начало синхронизации с</label>
+                    <input class="form-control" id="historyStartedFrom" type="date" onchange="renderHistoryGrid()">
+                </div>
+                <div class="history-filter">
+                    <label for="historyStartedTo">Начало синхронизации по</label>
+                    <input class="form-control" id="historyStartedTo" type="date" onchange="renderHistoryGrid()">
+                </div>
+                <div class="history-filter">
+                    <label for="historyFinishedFrom">Конец синхронизации с</label>
+                    <input class="form-control" id="historyFinishedFrom" type="date" onchange="renderHistoryGrid()">
+                </div>
+                <div class="history-filter">
+                    <label for="historyFinishedTo">Конец синхронизации по</label>
+                    <input class="form-control" id="historyFinishedTo" type="date" onchange="renderHistoryGrid()">
+                </div>
+                <div class="history-filter">
+                    <label for="historyStatusFilter">Статус</label>
+                    <select class="form-control" id="historyStatusFilter" onchange="renderHistoryGrid()">
+                        <option value="">Все статусы</option>
+                        <option value="IN PROGRESS">IN PROGRESS</option>
+                        <option value="SUCCESS">SUCCESS</option>
+                        <option value="ERROR">ERROR</option>
+                    </select>
+                </div>
+                <div class="history-filter">
+                    <label for="historyErrorSearch">Детали ошибок</label>
+                    <input class="form-control" id="historyErrorSearch" type="search" placeholder="Поиск по JSON/тексту" oninput="renderHistoryGrid()">
+                </div>
+                <div class="history-filter history-filter-actions">
+                    <button class="btn-secondary" type="button" onclick="resetHistoryFilters()">Сбросить</button>
+                </div>
+            </div>
             <div class="table-wrapper" id="historyTableWrapper"></div>
             <div class="modal-actions">
                 <button class="modal-close" onclick="closeHistoryModal()">Закрыть</button>
@@ -877,6 +984,9 @@
             ]
         };
 
+        let currentHistoryLogs = [];
+        let historySort = { field: "syncStartedAt", direction: "desc" };
+
         document.addEventListener("click", function(e) {
             if (!e.target.closest(".dropdown-wrapper")) {
                 closeDropdowns();
@@ -974,12 +1084,94 @@
 
         function syncHistory(systemId) {
             closeDropdowns();
-            const logs = syncLogs[systemId] || [];
+            currentHistoryLogs = syncLogs[systemId] || [];
+            resetHistoryFilters(false);
             document.getElementById("historyModalSystem").textContent = "Источник: " + getSystemName(systemId);
-            renderHistorySummary(logs);
-            renderHistoryTable(logs);
+            renderHistoryGrid();
             document.getElementById("historyModal").classList.add("show");
             console.log("GET /api/external-systems/" + systemId + "/sync-history");
+        }
+
+        function renderHistoryGrid() {
+            const filteredLogs = getFilteredHistoryLogs();
+            const sortedLogs = sortHistoryLogs(filteredLogs);
+            renderHistorySummary(filteredLogs);
+            renderHistoryTable(sortedLogs);
+        }
+
+        function getFilteredHistoryLogs() {
+            const startedFrom = getDateBoundary("historyStartedFrom", false);
+            const startedTo = getDateBoundary("historyStartedTo", true);
+            const finishedFrom = getDateBoundary("historyFinishedFrom", false);
+            const finishedTo = getDateBoundary("historyFinishedTo", true);
+            const statusFilter = document.getElementById("historyStatusFilter").value;
+            const errorSearch = document.getElementById("historyErrorSearch").value.trim().toLowerCase();
+
+            return currentHistoryLogs.filter(log => {
+                const startedAt = new Date(log.syncStartedAt).getTime();
+                const finishedAt = log.syncFinishedAt ? new Date(log.syncFinishedAt).getTime() : null;
+                const statusText = getSyncStatus(log).text;
+                const errorDetails = formatErrorDetails(log.errorDetails).toLowerCase();
+
+                if (startedFrom && startedAt < startedFrom.getTime()) return false;
+                if (startedTo && startedAt > startedTo.getTime()) return false;
+                if (finishedFrom && (!finishedAt || finishedAt < finishedFrom.getTime())) return false;
+                if (finishedTo && (!finishedAt || finishedAt > finishedTo.getTime())) return false;
+                if (statusFilter && statusText !== statusFilter) return false;
+                if (errorSearch && !errorDetails.includes(errorSearch)) return false;
+
+                return true;
+            });
+        }
+
+        function getDateBoundary(inputId, endOfDay) {
+            const value = document.getElementById(inputId).value;
+            if (!value) return null;
+            return new Date(value + (endOfDay ? "T23:59:59.999" : "T00:00:00"));
+        }
+
+        function sortHistoryLogs(logs) {
+            return [...logs].sort((a, b) => {
+                const aValue = getHistorySortValue(a, historySort.field);
+                const bValue = getHistorySortValue(b, historySort.field);
+                const direction = historySort.direction === "asc" ? 1 : -1;
+
+                if (typeof aValue === "string" || typeof bValue === "string") {
+                    return String(aValue).localeCompare(String(bValue), "ru") * direction;
+                }
+
+                return (aValue - bValue) * direction;
+            });
+        }
+
+        function getHistorySortValue(log, field) {
+            if (field === "status") return getSyncStatus(log).text;
+            if (field === "syncStartedAt") return new Date(log.syncStartedAt).getTime();
+            if (field === "syncFinishedAt") return log.syncFinishedAt ? new Date(log.syncFinishedAt).getTime() : 0;
+            return log[field] || 0;
+        }
+
+        function setHistorySort(field) {
+            if (historySort.field === field) {
+                historySort.direction = historySort.direction === "asc" ? "desc" : "asc";
+            } else {
+                historySort = {
+                    field,
+                    direction: field === "syncStartedAt" || field === "syncFinishedAt" ? "desc" : "asc"
+                };
+            }
+
+            renderHistoryGrid();
+        }
+
+        function resetHistoryFilters(shouldRender = true) {
+            ["historyStartedFrom", "historyStartedTo", "historyFinishedFrom", "historyFinishedTo", "historyStatusFilter", "historyErrorSearch"].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+            historySort = { field: "syncStartedAt", direction: "desc" };
+            if (shouldRender) {
+                renderHistoryGrid();
+            }
         }
 
         function renderHistorySummary(logs) {
@@ -992,10 +1184,10 @@
             }, { totalReceived: 0, created: 0, updated: 0, errors: 0 });
 
             document.getElementById("historySummary").innerHTML = [
-                createSummaryCard("Получено устройств", summary.totalReceived),
-                createSummaryCard("Создано камер", summary.created),
-                createSummaryCard("Обновлено камер", summary.updated),
-                createSummaryCard("Ошибки", summary.errors)
+                createSummaryCard("Всего получено устройств", summary.totalReceived),
+                createSummaryCard("Всего создано камер", summary.created),
+                createSummaryCard("Всего обновлено камер", summary.updated),
+                createSummaryCard("Всего ошибок", summary.errors)
             ].join("");
         }
 
@@ -1010,21 +1202,18 @@
             const wrapper = document.getElementById("historyTableWrapper");
 
             if (!logs.length) {
-                wrapper.innerHTML = '<div class="empty-state">История синхронизаций пока отсутствует</div>';
+                wrapper.innerHTML = '<div class="empty-state">Записи истории синхронизаций не найдены</div>';
                 return;
             }
 
             const rows = logs.map(log => {
-                const statusClass = log.syncFinishedAt ? (log.errors > 0 ? "status-error" : "status-success") : "status-progress";
-                const dotClass = log.syncFinishedAt ? (log.errors > 0 ? "dot-error" : "dot-success") : "dot-progress";
-                const statusText = log.syncFinishedAt ? (log.errors > 0 ? "ERROR" : "SUCCESS") : "IN PROGRESS";
+                const status = getSyncStatus(log);
 
                 return '<tr>' +
                     '<td>' + log.id + '</td>' +
-                    '<td>' + log.source_id + '</td>' +
                     '<td>' + formatDateTime(log.syncStartedAt) + '</td>' +
                     '<td>' + formatDateTime(log.syncFinishedAt) + '</td>' +
-                    '<td><span class="status-badge ' + statusClass + '"><span class="status-dot ' + dotClass + '"></span>' + statusText + '</span></td>' +
+                    '<td><span class="status-badge ' + status.className + '"><span class="status-dot ' + status.dotClass + '"></span>' + status.text + '</span></td>' +
                     '<td class="numeric-cell">' + log.totalReceived + '</td>' +
                     '<td class="numeric-cell">' + log.created + '</td>' +
                     '<td class="numeric-cell">' + log.updated + '</td>' +
@@ -1036,20 +1225,42 @@
             wrapper.innerHTML = '<table class="history-table">' +
                 '<thead>' +
                     '<tr>' +
-                        '<th>ID</th>' +
-                        '<th>Источник</th>' +
-                        '<th>Начало</th>' +
-                        '<th>Конец</th>' +
-                        '<th>Статус</th>' +
-                        '<th>Получено</th>' +
-                        '<th>Создано</th>' +
-                        '<th>Обновлено</th>' +
-                        '<th>Ошибки</th>' +
+                        createSortHeader("id", "ID") +
+                        createSortHeader("syncStartedAt", "Начало") +
+                        createSortHeader("syncFinishedAt", "Конец") +
+                        createSortHeader("status", "Статус") +
+                        createSortHeader("totalReceived", "Получено", true) +
+                        createSortHeader("created", "Создано", true) +
+                        createSortHeader("updated", "Обновлено", true) +
+                        createSortHeader("errors", "Ошибки", true) +
                         '<th>Детали ошибок</th>' +
                     '</tr>' +
                 '</thead>' +
                 '<tbody>' + rows + '</tbody>' +
             '</table>';
+        }
+
+        function createSortHeader(field, label, numeric = false) {
+            const isActive = historySort.field === field;
+            const indicator = isActive ? historySort.direction.toUpperCase() : "-";
+            const buttonClass = numeric ? "sort-button numeric-sort" : "sort-button";
+            return '<th class="sortable-header">' +
+                '<button class="' + buttonClass + '" type="button" onclick="setHistorySort(\'' + field + '\')">' +
+                    escapeHtml(label) + ' <span class="sort-indicator">' + indicator + '</span>' +
+                '</button>' +
+            '</th>';
+        }
+
+        function getSyncStatus(log) {
+            if (!log.syncFinishedAt) {
+                return { text: "IN PROGRESS", className: "status-progress", dotClass: "dot-progress" };
+            }
+
+            if (log.errors > 0) {
+                return { text: "ERROR", className: "status-error", dotClass: "dot-error" };
+            }
+
+            return { text: "SUCCESS", className: "status-success", dotClass: "dot-success" };
         }
 
         function closeHistoryModal() {
