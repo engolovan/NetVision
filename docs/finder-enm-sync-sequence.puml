@@ -1,0 +1,135 @@
+@startuml finder-enm-sync-sequence
+title Синхронизация камер EnM с внешней мастер-системой Finder
+
+autonumber
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantPadding 24
+skinparam BoxPadding 12
+
+actor "Администратор\nплатформы" as Admin
+
+box "Платформа" #EEF7FF
+participant "Планировщик\n(Cron/Timer)" as Scheduler
+participant "Integration Service\n(Finder Sync)" as Sync
+participant "EnM\nEntity Management" as EnM
+participant "Camera Service\n(Service Layer)" as CameraService
+database "БД камер\nUNIQUE(external_id)" as CameraDB
+participant "Audit / Error Log" as Log
+participant "Notification Service" as Notify
+end box
+
+box "Внешняя мастер-система" #FFF4E6
+participant "Finder API" as Finder
+end box
+
+== Запуск синхронизации ==
+
+alt Регулярный запуск по расписанию
+    Scheduler -> Sync: startSync(source = "Finder")
+else Ручной запуск администратором
+    Admin -> EnM: Нажать "Синхронизировать Finder"
+    EnM -> Sync: startSync(source = "Finder", triggeredBy = Admin)
+end
+
+Sync -> Sync: Создать sync-session\nпрочитать URL, расписание, признак/тип комплекса
+
+== Получение реестра устройств из Finder ==
+
+loop До 3 попыток соединения
+    Sync -> Finder: GET /devices?type=<признак>\nили иной фильтр из конфигурации
+
+    alt Finder доступен и ответ валиден
+        Finder --> Sync: 200 OK\nсписок устройств
+        break Ответ получен
+    else Ошибка сети или 5xx
+        Finder --> Sync: timeout / 5xx
+        Sync -> Log: Записать неудачную попытку\nномер попытки и причину
+        Sync -> Sync: Подождать backoff\n1 мин -> 5 мин -> 15 мин
+    end
+end
+
+alt Все 3 попытки исчерпаны
+    Sync -> Log: Ошибка интеграции Finder\nsync-session failed
+    Sync -> Notify: Уведомить администратора\nо недоступности Finder
+    Sync --> Scheduler: Завершить сессию до следующего запуска
+else Список устройств получен
+
+    == Обработка устройств ==
+
+    loop Для каждого устройства из ответа Finder
+        Sync -> CameraService: upsertExternalCamera(device,\nsource = "Finder")
+        note right of CameraService
+            Валидация и контроль изменений выполняются
+            на service layer, чтобы правило работало
+            для API и внутренних вызовов.
+        end note
+
+        CameraService -> CameraDB: Найти камеру по external_id
+
+        alt external_id не найден
+            CameraDB --> CameraService: Камера отсутствует
+            CameraService -> CameraDB: Создать Camera\nexternal_id = device.id\nsource_system = Finder\nтип/признак источника\nстатус = "требует настройки"\nмастер-поля из Finder
+            CameraDB --> CameraService: Камера создана
+            CameraService -> Log: Audit: создана камера\nexternal_id, camera_id
+            CameraService -> Notify: Уведомить о новой камере\nдля дальнейшей настройки
+
+        else external_id найден
+            CameraDB --> CameraService: Текущая Camera
+            CameraService -> CameraService: Сравнить мастер-поля Finder\nс текущими значениями
+
+            alt Найдены расхождения
+                CameraService -> CameraDB: Обновить только поля,\nконтролируемые Finder
+                CameraDB --> CameraService: Камера обновлена
+                CameraService -> Log: Audit: обновлены мастер-поля\nexternal_id, список изменений
+            else Изменений нет
+                CameraService -> Log: Audit/debug: без изменений\nexternal_id
+            end
+        end
+
+        alt Ошибка обработки конкретного устройства
+            CameraService --> Sync: Ошибка валидации/сохранения\nexternal_id, причина
+            Sync -> Log: Error: проблемное устройство\nexternal_id, причина
+            Sync -> Notify: Добавить ошибку в отчет\nдля администратора
+            Sync -> Sync: Продолжить обработку следующего устройства
+        else Устройство обработано успешно
+            CameraService --> Sync: OK
+        end
+    end
+
+    Sync -> Log: Записать статистику сессии\ncreated, updated, skipped, failed
+    Sync -> Notify: Отправить итог синхронизации\nесли есть новые камеры или ошибки
+    Sync --> Scheduler: sync-session completed
+end
+
+== Ручное редактирование камеры в EnM ==
+
+Admin -> EnM: Открыть карточку камеры
+EnM -> CameraService: getCamera(camera_id)
+CameraService -> CameraDB: Прочитать камеру
+CameraDB --> CameraService: Camera + source_system + locked_fields
+CameraService --> EnM: Данные камеры и список заблокированных полей
+EnM --> Admin: Показать форму\nзаблокированные поля readonly + tooltip
+
+Admin -> EnM: Сохранить изменения камеры
+EnM -> CameraService: updateCamera(camera_id, patch)
+
+alt patch содержит поле, контролируемое Finder
+    CameraService -> Log: Audit/error: попытка изменения\nзаблокированного поля
+    CameraService --> EnM: 409/422 LockedFieldError\nполе, причина блокировки
+    EnM --> Admin: Показать ошибку и tooltip:\n"Поле управляется Finder"
+else изменяются только бизнес-атрибуты платформы
+    CameraService -> CameraDB: Обновить разрешенные поля\nадрес, теги, настройки и т.п.
+    CameraDB --> CameraService: OK
+    CameraService -> Log: Audit: обновлены\nплатформенные атрибуты
+    CameraService --> EnM: OK
+    EnM --> Admin: Изменения сохранены
+end
+
+note over CameraDB
+    Идемпотентность обеспечивается UNIQUE(external_id):
+    повторная синхронизация одного и того же списка
+    не создает дубли камер.
+end note
+
+@enduml
