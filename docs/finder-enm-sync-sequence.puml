@@ -1,0 +1,148 @@
+@startuml finder-enm-sync-sequence
+title Синхронизация камер EnM с внешней мастер-системой Finder
+
+autonumber
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantPadding 24
+skinparam BoxPadding 12
+
+actor "Администратор\nплатформы" as Admin
+
+box "Платформа" #EEF7FF
+participant "Планировщик\n(Cron/Timer)" as Scheduler
+participant "Integration Service\n(Finder Sync)" as Sync
+participant "EnM\nEntity Management" as EnM
+database "Хранилище EnM\nкамеры / потоки / системы\nUNIQUE(external_id)" as EnMStore
+participant "Audit / Error Log" as Log
+participant "Notification Service" as Notify
+end box
+
+box "Внешняя мастер-система" #FFF4E6
+participant "Finder API" as Finder
+end box
+
+== Запуск синхронизации ==
+
+alt Регулярный запуск по расписанию
+    Scheduler -> Sync: startSync(source = "Finder", trigger = scheduled)
+else Ручной запуск администратором
+    Admin -> EnM: Нажать "Синхронизировать Finder"
+    EnM -> Sync: startSync(source = "Finder", trigger = manual)
+end
+
+Sync -> Sync: Создать sync-session\nпрочитать URL, расписание, признак/тип комплекса
+
+== Получение реестра устройств из Finder ==
+
+loop До 3 попыток соединения, пока список не получен
+    Sync -> Finder: GET /devices?type={признак}\nили иной фильтр из конфигурации
+
+    alt Finder доступен и ответ валиден
+        Finder --> Sync: 200 OK\nсписок устройств
+        Sync -> Sync: Сохранить список устройств\nи завершить повторные попытки
+    else Ошибка сети или 5xx
+        Finder --> Sync: timeout / 5xx
+        Sync -> Log: Записать неудачную попытку\nномер попытки и причину
+        Sync -> Sync: Подождать backoff\n1 мин -> 5 мин -> 15 мин
+    end
+end
+
+alt Все 3 попытки исчерпаны
+    Sync -> Log: Ошибка интеграции Finder\nsync-session failed
+    alt trigger = scheduled
+        Sync -> Notify: Уведомить администратора\nо плановой синхронизации с ошибкой
+    else trigger = manual
+        Sync --> EnM: Вернуть ошибку синхронизации
+        EnM --> Admin: Показать ошибку в интерфейсе
+    end
+    Sync -> Sync: Завершить сессию\nдо следующего запуска
+else Список устройств получен
+
+    == Обработка устройств ==
+
+    loop Для каждого устройства из ответа Finder
+        Sync -> EnM: upsertExternalCamera(device,\nsource = "Finder")
+        note right of EnM
+            EnM отвечает за сущности камер, потоки
+            и системы. Отдельный Camera Service
+            в этой схеме не выделяется.
+        end note
+
+        EnM -> EnMStore: Найти камеру по external_id
+
+        alt external_id не найден
+            EnMStore --> EnM: Камера отсутствует
+            EnM -> EnMStore: Создать Camera\nexternal_id = device.id\nsource_system = Finder\nтип/признак источника\nстатус = "требует настройки"\nполя из Finder + source=Finder
+            EnMStore --> EnM: Камера создана
+            EnM -> Log: Audit: создана камера\nexternal_id, camera_id
+
+        else external_id найден
+            EnMStore --> EnM: Текущая Camera\n+ metadata source полей
+            EnM -> EnM: Сравнить данные Finder\nс текущими значениями EnM
+
+            alt Найдены новые данные Finder\nдля незаполненных внешних полей
+                EnM -> EnMStore: Сохранить только новые значения\nбез перезаписи уже полученных из Finder
+                EnMStore --> EnM: Камера обновлена
+                EnM -> Log: Audit: добавлены новые внешние данные\nexternal_id, список изменений
+            else Расхождения по полям,\nуже полученным из Finder
+                EnM -> Log: Audit: расхождения зафиксированы,\nзначения EnM не перезаписаны\nexternal_id, список расхождений
+            else Изменений нет
+                EnM -> Log: Audit/debug: без изменений\nexternal_id
+            end
+        end
+
+        alt Ошибка обработки конкретного устройства
+            EnM --> Sync: Ошибка валидации/сохранения\nexternal_id, причина
+            Sync -> Log: Error: проблемное устройство\nexternal_id, причина
+            Sync -> Sync: Зафиксировать ошибку\nв результате sync-session
+            Sync -> Sync: Продолжить обработку следующего устройства
+        else Устройство обработано успешно
+            EnM --> Sync: OK
+        end
+    end
+
+    Sync -> Log: Записать статистику сессии\ncreated, updated, skipped, failed
+    alt failed > 0 и trigger = scheduled
+        Sync -> Notify: Уведомить администратора\nо плановой синхронизации с ошибкой
+    else Ошибок нет или запуск ручной
+        Sync -> Log: Нотификация не отправляется
+    end
+
+    alt trigger = manual
+        Sync --> EnM: Результат синхронизации\ncreated, updated, skipped, failed
+        EnM --> Admin: Показать результат в интерфейсе
+    else trigger = scheduled
+        Sync --> Scheduler: sync-session completed
+    end
+end
+
+== Ручное редактирование камеры в EnM ==
+
+Admin -> EnM: Открыть карточку камеры
+EnM -> EnMStore: Прочитать камеру
+EnMStore --> EnM: Camera + field_source metadata
+EnM --> Admin: Показать форму\nполя Finder помечены как внешние,\nно не заблокированы
+
+Admin -> EnM: Сохранить изменения камеры
+EnM -> EnM: Разделить patch на поля платформы\nи поля с source=Finder
+
+alt patch содержит поля с source=Finder
+    EnM -> EnMStore: Сохранить только поля платформы\nполя Finder не перезаписывать
+    EnMStore --> EnM: OK
+    EnM -> Log: Audit: изменения внешних полей проигнорированы\ncamera_id, список полей
+    EnM --> Admin: Изменения сохранены\nполя Finder оставлены без изменений
+else изменяются только бизнес-атрибуты платформы
+    EnM -> EnMStore: Обновить поля платформы\nадрес, теги, настройки и т.п.
+    EnMStore --> EnM: OK
+    EnM -> Log: Audit: обновлены\nплатформенные атрибуты
+    EnM --> Admin: Изменения сохранены
+end
+
+note over EnMStore
+    Идемпотентность обеспечивается UNIQUE(external_id):
+    повторная синхронизация одного и того же списка
+    не создает дубли камер.
+end note
+
+@enduml
