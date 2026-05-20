@@ -516,33 +516,6 @@
             font-weight: 700;
         }
 
-        .history-controls {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(150px, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-            padding: 14px;
-            background: #111827;
-            border: 1px solid #262a36;
-            border-radius: 10px;
-        }
-
-        .history-filter {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .history-filter label {
-            color: #9ca3af;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .history-filter-actions {
-            align-self: end;
-        }
-
         .history-table {
             min-width: 780px;
         }
@@ -559,40 +532,82 @@
 
         .history-table .sortable-header {
             padding: 0;
+            vertical-align: top;
         }
 
-        .sort-button {
-            width: 100%;
+        .history-header-cell {
             min-height: 38px;
+            padding: 8px 12px;
+        }
+
+        .history-header-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .history-header-title {
+            white-space: nowrap;
+        }
+
+        .history-header-actions {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 10px 12px;
+        }
+
+        .header-icon-button {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             border: none;
+            border-radius: 5px;
             background: transparent;
-            color: inherit;
+            color: #9ca3af;
             cursor: pointer;
             font: inherit;
             font-size: 12px;
             font-weight: 500;
-            text-align: left;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            white-space: nowrap;
         }
 
-        .sort-button:hover {
+        .header-icon-button:hover,
+        .header-icon-button.active {
             color: #60a5fa;
             background: #1e2230;
         }
 
-        .sort-button.numeric-sort {
-            justify-content: flex-end;
+        .history-filter-control {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+            min-width: 150px;
         }
 
-        .sort-indicator {
-            color: #60a5fa;
+        .history-filter-control .form-control {
+            padding: 7px 8px;
+            font-size: 12px;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .date-range-filter {
+            min-width: 170px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-row span {
+            color: #9ca3af;
             font-size: 11px;
+            min-width: 18px;
         }
 
         .error-details {
@@ -633,14 +648,6 @@
 
             .history-summary {
                 grid-template-columns: repeat(2, minmax(120px, 1fr));
-            }
-
-            .history-controls {
-                grid-template-columns: 1fr;
-            }
-
-            .history-filter-actions {
-                align-self: stretch;
             }
 
             .modal-actions {
@@ -801,40 +808,6 @@
             <div class="modal-title">История синхронизаций</div>
             <div class="modal-subtitle" id="historyModalSystem">Источник: -</div>
             <div class="history-summary" id="historySummary"></div>
-            <div class="history-controls">
-                <div class="history-filter">
-                    <label for="historyStartedFrom">Начало синхронизации с</label>
-                    <input class="form-control" id="historyStartedFrom" type="date" onchange="renderHistoryGrid()">
-                </div>
-                <div class="history-filter">
-                    <label for="historyStartedTo">Начало синхронизации по</label>
-                    <input class="form-control" id="historyStartedTo" type="date" onchange="renderHistoryGrid()">
-                </div>
-                <div class="history-filter">
-                    <label for="historyFinishedFrom">Конец синхронизации с</label>
-                    <input class="form-control" id="historyFinishedFrom" type="date" onchange="renderHistoryGrid()">
-                </div>
-                <div class="history-filter">
-                    <label for="historyFinishedTo">Конец синхронизации по</label>
-                    <input class="form-control" id="historyFinishedTo" type="date" onchange="renderHistoryGrid()">
-                </div>
-                <div class="history-filter">
-                    <label for="historyStatusFilter">Статус</label>
-                    <select class="form-control" id="historyStatusFilter" onchange="renderHistoryGrid()">
-                        <option value="">Все статусы</option>
-                        <option value="IN PROGRESS">IN PROGRESS</option>
-                        <option value="SUCCESS">SUCCESS</option>
-                        <option value="ERROR">ERROR</option>
-                    </select>
-                </div>
-                <div class="history-filter">
-                    <label for="historyErrorSearch">Детали ошибок</label>
-                    <input class="form-control" id="historyErrorSearch" type="search" placeholder="Поиск по JSON/тексту" oninput="renderHistoryGrid()">
-                </div>
-                <div class="history-filter history-filter-actions">
-                    <button class="btn-secondary" type="button" onclick="resetHistoryFilters()">Сбросить</button>
-                </div>
-            </div>
             <div class="table-wrapper" id="historyTableWrapper"></div>
             <div class="modal-actions">
                 <button class="modal-close" onclick="closeHistoryModal()">Закрыть</button>
@@ -986,6 +959,27 @@
 
         let currentHistoryLogs = [];
         let historySort = { field: "syncStartedAt", direction: "desc" };
+        let openHistoryFilter = null;
+        let historyFilters = {
+            startedFrom: "",
+            startedTo: "",
+            finishedFrom: "",
+            finishedTo: "",
+            status: "",
+            errorDetails: ""
+        };
+
+        const historyColumns = [
+            { field: "id", label: "ID", sortable: true },
+            { field: "syncStartedAt", label: "Начало", sortable: true, searchType: "dateRange", filterKey: "started" },
+            { field: "syncFinishedAt", label: "Конец", sortable: true, searchType: "dateRange", filterKey: "finished" },
+            { field: "status", label: "Статус", sortable: true, searchType: "status", filterKey: "status" },
+            { field: "totalReceived", label: "Получено", sortable: true, numeric: true },
+            { field: "created", label: "Создано", sortable: true, numeric: true },
+            { field: "updated", label: "Обновлено", sortable: true, numeric: true },
+            { field: "errors", label: "Ошибки", sortable: true, numeric: true },
+            { field: "errorDetails", label: "Детали ошибок", searchType: "text", filterKey: "errorDetails" }
+        ];
 
         document.addEventListener("click", function(e) {
             if (!e.target.closest(".dropdown-wrapper")) {
@@ -1100,12 +1094,12 @@
         }
 
         function getFilteredHistoryLogs() {
-            const startedFrom = getDateBoundary("historyStartedFrom", false);
-            const startedTo = getDateBoundary("historyStartedTo", true);
-            const finishedFrom = getDateBoundary("historyFinishedFrom", false);
-            const finishedTo = getDateBoundary("historyFinishedTo", true);
-            const statusFilter = document.getElementById("historyStatusFilter").value;
-            const errorSearch = document.getElementById("historyErrorSearch").value.trim().toLowerCase();
+            const startedFrom = getDateBoundary(historyFilters.startedFrom, false);
+            const startedTo = getDateBoundary(historyFilters.startedTo, true);
+            const finishedFrom = getDateBoundary(historyFilters.finishedFrom, false);
+            const finishedTo = getDateBoundary(historyFilters.finishedTo, true);
+            const statusFilter = historyFilters.status;
+            const errorSearch = historyFilters.errorDetails.trim().toLowerCase();
 
             return currentHistoryLogs.filter(log => {
                 const startedAt = new Date(log.syncStartedAt).getTime();
@@ -1124,8 +1118,7 @@
             });
         }
 
-        function getDateBoundary(inputId, endOfDay) {
-            const value = document.getElementById(inputId).value;
+        function getDateBoundary(value, endOfDay) {
             if (!value) return null;
             return new Date(value + (endOfDay ? "T23:59:59.999" : "T00:00:00"));
         }
@@ -1165,13 +1158,37 @@
         }
 
         function resetHistoryFilters(shouldRender = true) {
-            ["historyStartedFrom", "historyStartedTo", "historyFinishedFrom", "historyFinishedTo", "historyStatusFilter", "historyErrorSearch"].forEach(id => {
-                document.getElementById(id).value = "";
-            });
+            historyFilters = {
+                startedFrom: "",
+                startedTo: "",
+                finishedFrom: "",
+                finishedTo: "",
+                status: "",
+                errorDetails: ""
+            };
+            openHistoryFilter = null;
             historySort = { field: "syncStartedAt", direction: "desc" };
             if (shouldRender) {
                 renderHistoryGrid();
             }
+        }
+
+        function setHistoryFilter(key, value) {
+            historyFilters[key] = value;
+            renderHistoryGrid();
+            const filterControl = document.getElementById("history-filter-" + key);
+            if (filterControl) {
+                filterControl.focus();
+                if (filterControl.type === "search") {
+                    filterControl.setSelectionRange(filterControl.value.length, filterControl.value.length);
+                }
+            }
+        }
+
+        function toggleHistoryFilter(event, filterKey) {
+            event.stopPropagation();
+            openHistoryFilter = openHistoryFilter === filterKey ? null : filterKey;
+            renderHistoryGrid();
         }
 
         function renderHistorySummary(logs) {
@@ -1200,13 +1217,7 @@
 
         function renderHistoryTable(logs) {
             const wrapper = document.getElementById("historyTableWrapper");
-
-            if (!logs.length) {
-                wrapper.innerHTML = '<div class="empty-state">Записи истории синхронизаций не найдены</div>';
-                return;
-            }
-
-            const rows = logs.map(log => {
+            const rows = logs.length ? logs.map(log => {
                 const status = getSyncStatus(log);
 
                 return '<tr>' +
@@ -1220,35 +1231,100 @@
                     '<td class="numeric-cell">' + log.errors + '</td>' +
                     '<td class="error-details" title="' + escapeHtml(formatErrorDetails(log.errorDetails)) + '">' + escapeHtml(formatErrorDetails(log.errorDetails)) + '</td>' +
                 '</tr>';
-            }).join("");
+            }).join("") : '<tr><td colspan="' + historyColumns.length + '"><div class="empty-state">Записи истории синхронизаций не найдены</div></td></tr>';
 
             wrapper.innerHTML = '<table class="history-table">' +
                 '<thead>' +
                     '<tr>' +
-                        createSortHeader("id", "ID") +
-                        createSortHeader("syncStartedAt", "Начало") +
-                        createSortHeader("syncFinishedAt", "Конец") +
-                        createSortHeader("status", "Статус") +
-                        createSortHeader("totalReceived", "Получено", true) +
-                        createSortHeader("created", "Создано", true) +
-                        createSortHeader("updated", "Обновлено", true) +
-                        createSortHeader("errors", "Ошибки", true) +
-                        '<th>Детали ошибок</th>' +
+                        historyColumns.map(createHistoryHeader).join("") +
                     '</tr>' +
                 '</thead>' +
                 '<tbody>' + rows + '</tbody>' +
             '</table>';
         }
 
-        function createSortHeader(field, label, numeric = false) {
-            const isActive = historySort.field === field;
-            const indicator = isActive ? historySort.direction.toUpperCase() : "-";
-            const buttonClass = numeric ? "sort-button numeric-sort" : "sort-button";
+        function createHistoryHeader(column) {
             return '<th class="sortable-header">' +
-                '<button class="' + buttonClass + '" type="button" onclick="setHistorySort(\'' + field + '\')">' +
-                    escapeHtml(label) + ' <span class="sort-indicator">' + indicator + '</span>' +
-                '</button>' +
+                '<div class="history-header-cell">' +
+                    '<div class="history-header-main">' +
+                        '<span class="history-header-title">' + escapeHtml(column.label) + '</span>' +
+                        '<span class="history-header-actions">' + createHeaderActions(column) + '</span>' +
+                    '</div>' +
+                    createHeaderFilter(column) +
+                '</div>' +
             '</th>';
+        }
+
+        function createHeaderActions(column) {
+            const actions = [];
+
+            if (column.sortable) {
+                const isActive = historySort.field === column.field;
+                const indicator = isActive ? (historySort.direction === "asc" ? "↑" : "↓") : "↕";
+                const activeClass = isActive ? " active" : "";
+                actions.push(
+                    '<button class="header-icon-button' + activeClass + '" type="button" title="Сортировка" aria-label="Сортировка" onclick="setHistorySort(\'' + column.field + '\')">' +
+                        indicator +
+                    '</button>'
+                );
+            }
+
+            if (column.searchType) {
+                const hasFilter = hasActiveHistoryFilter(column);
+                const activeClass = (openHistoryFilter === column.filterKey || hasFilter) ? " active" : "";
+                actions.push(
+                    '<button class="header-icon-button' + activeClass + '" type="button" title="Поиск" aria-label="Поиск" onclick="toggleHistoryFilter(event, \'' + column.filterKey + '\')">🔍</button>'
+                );
+            }
+
+            return actions.join("");
+        }
+
+        function createHeaderFilter(column) {
+            if (!column.searchType || (openHistoryFilter !== column.filterKey && !hasActiveHistoryFilter(column))) {
+                return "";
+            }
+
+            if (column.searchType === "dateRange") {
+                const fromKey = column.filterKey + "From";
+                const toKey = column.filterKey + "To";
+                return '<div class="history-filter-control date-range-filter">' +
+                    '<div class="filter-row"><span>с</span><input class="form-control" id="history-filter-' + fromKey + '" type="date" value="' + escapeHtml(historyFilters[fromKey]) + '" onchange="setHistoryFilter(\'' + fromKey + '\', this.value)"></div>' +
+                    '<div class="filter-row"><span>по</span><input class="form-control" id="history-filter-' + toKey + '" type="date" value="' + escapeHtml(historyFilters[toKey]) + '" onchange="setHistoryFilter(\'' + toKey + '\', this.value)"></div>' +
+                '</div>';
+            }
+
+            if (column.searchType === "status") {
+                return '<div class="history-filter-control">' +
+                    '<select class="form-control" id="history-filter-status" onchange="setHistoryFilter(\'status\', this.value)">' +
+                        createStatusOption("", "Все статусы") +
+                        createStatusOption("IN PROGRESS", "IN PROGRESS") +
+                        createStatusOption("SUCCESS", "SUCCESS") +
+                        createStatusOption("ERROR", "ERROR") +
+                    '</select>' +
+                '</div>';
+            }
+
+            return '<div class="history-filter-control">' +
+                '<input class="form-control" id="history-filter-errorDetails" type="search" value="' + escapeHtml(historyFilters.errorDetails) + '" placeholder="Поиск по JSON/тексту" oninput="setHistoryFilter(\'errorDetails\', this.value)">' +
+            '</div>';
+        }
+
+        function createStatusOption(value, label) {
+            const selected = historyFilters.status === value ? " selected" : "";
+            return '<option value="' + escapeHtml(value) + '"' + selected + '>' + escapeHtml(label) + '</option>';
+        }
+
+        function hasActiveHistoryFilter(column) {
+            if (column.searchType === "dateRange") {
+                return Boolean(historyFilters[column.filterKey + "From"] || historyFilters[column.filterKey + "To"]);
+            }
+
+            if (column.searchType === "status") {
+                return Boolean(historyFilters.status);
+            }
+
+            return Boolean(historyFilters.errorDetails);
         }
 
         function getSyncStatus(log) {
