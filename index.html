@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Справочник источников</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f1117;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            color: #e5e7eb;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            width: 100%;
+            background: #1a1d27;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
+            padding: 20px 20px 24px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+
+        .subsection-header {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .subsection-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subsection-header-left span {
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        .counter {
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            background: #262a36;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            border-bottom: 1px solid #262a36;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #1e2230;
+            color: #e5e7eb;
+            font-weight: 500;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #1e2230;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .description-cell {
+            max-width: 240px;
+            color: #9ca3af;
+            font-weight: 400;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #374151;
+            border-radius: 22px;
+            transition: background 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background: #e5e7eb;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: #3b82f6;
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .status-idle {
+            background: #1f2937;
+            color: #9ca3af;
+        }
+
+        .status-progress {
+            background: #1e293b;
+            color: #60a5fa;
+        }
+
+        .status-success {
+            background: #0f1f17;
+            color: #4ade80;
+        }
+
+        .status-error {
+            background: #1f1315;
+            color: #f87171;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-idle { background: #6b7280; }
+        .dot-progress { background: #3b82f6; animation: pulse 1.2s infinite; }
+        .dot-success { background: #22c55e; }
+        .dot-error { background: #ef4444; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .actions-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+
+        .btn-sync {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .btn-sync:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-sync:active {
+            background: #1e40af;
+        }
+
+        .btn-sync:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+        }
+
+        .btn-fields {
+            background: #374151;
+            color: #d1d5db;
+        }
+
+        .btn-fields:hover {
+            background: #4b5563;
+        }
+
+        .btn-fields:active {
+            background: #6b7280;
+        }
+
+        .btn-more {
+            background: transparent;
+            color: #9ca3af;
+            padding: 7px 10px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .btn-more:hover {
+            background: #262a36;
+            color: #e5e7eb;
+        }
+
+        .dropdown-wrapper {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 38px;
+            background: #1a1d27;
+            border: 1px solid #262a36;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            min-width: 210px;
+            display: none;
+            padding: 4px 0;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #e5e7eb;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .dropdown-menu button:hover {
+            background: #262a36;
+            color: #60a5fa;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1d27;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            max-width: 560px;
+            width: 100%;
+            max-height: calc(100vh - 32px);
+            padding: 24px;
+            border: 1px solid #262a36;
+            overflow-y: auto;
+        }
+
+        .modal-wide {
+            max-width: 980px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 18px;
+        }
+
+        .modal-fields {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 20px;
+        }
+
+        .modal-fields li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #e5e7eb;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.35;
+            padding: 0;
+        }
+
+        .locked-badge {
+            flex: none;
+            color: #fbbf24;
+            background: #2a2114;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1;
+            padding: 3px 7px;
+            white-space: nowrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            color: #d1d5db;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            background: #111827;
+            color: #e5e7eb;
+            font: inherit;
+            font-size: 14px;
+            padding: 10px 12px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+        }
+
+        textarea.form-control {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-close,
+        .btn-primary,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .modal-close,
+        .btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .modal-close:hover,
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .modal-close:active,
+        .btn-primary:active {
+            background: #1e40af;
+        }
+
+        .btn-secondary {
+            background: #374151;
+            color: #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            background: #111827;
+            border: 1px solid #262a36;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .summary-label {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .summary-value {
+            color: #f1f5f9;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .history-table {
+            min-width: 860px;
+        }
+
+        .history-table td {
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        .history-table .numeric-cell {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .error-details {
+            max-width: 220px;
+            color: #fca5a5;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-state {
+            color: #9ca3af;
+            background: #111827;
+            border: 1px dashed #374151;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            thead th:nth-child(2),
+            tbody td:nth-child(2) {
+                display: none;
+            }
+
+            .btn span {
+                display: none;
+            }
+
+            .modal-fields li {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .history-summary {
+                grid-template-columns: repeat(2, minmax(120px, 1fr));
+            }
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+            .modal-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="section-title">СПРАВОЧНИКИ</div>
+
+        <div class="subsection-header">
+            <div class="subsection-header-left">
+                <span>📋</span> Источники камер
+            </div>
+            <span class="counter">Всего систем: <strong>4</strong></span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Описание</th>
+                        <th>Включена</th>
+                        <th>Статус</th>
+                        <th>Последняя синхронизация</th>
+                        <th>Создан</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-system-id="sys-1">
+                        <td class="system-name-cell">СКУД Главного офиса</td>
+                        <td class="description-cell">Основная система контроля доступа центрального здания</td>
+                        <td>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked onchange="toggleSystem(this, 'sys-1')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td><span class="status-badge status-idle" id="status-sys-1"><span class="status-dot dot-idle"></span>IDLE</span></td>
+                        <td>17.05.2026, 14:32</td>
+                        <td>10.01.2026, 09:15</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn btn-sync" onclick="forceSync('sys-1')">⚡ <span>Обновить</span></button>
+                                <button class="btn btn-fields" onclick="openFieldsModal('sys-1', getSystemName('sys-1'))">▦ <span>Поля</span></button>
+                                <div class="dropdown-wrapper">
+                                    <button class="btn btn-more" onclick="toggleDropdown(event, 'menu-sys-1')">⋮</button>
+                                    <div class="dropdown-menu" id="menu-sys-1">
+                                        <button onclick="openEditModal('sys-1')">Редактировать</button>
+                                        <button onclick="syncHistory('sys-1')">История синхронизаций</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-system-id="sys-2">
+                        <td class="system-name-cell">Городской реестр Самара</td>
+                        <td class="description-cell">Муниципальный реестр камер видеонаблюдения г. Самара</td>
+                        <td>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked onchange="toggleSystem(this, 'sys-2')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td><span class="status-badge status-success" id="status-sys-2"><span class="status-dot dot-success"></span>SUCCESS</span></td>
+                        <td>18.05.2026, 09:05</td>
+                        <td>15.02.2026, 11:00</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn btn-sync" onclick="forceSync('sys-2')">⚡ <span>Обновить</span></button>
+                                <button class="btn btn-fields" onclick="openFieldsModal('sys-2', getSystemName('sys-2'))">▦ <span>Поля</span></button>
+                                <div class="dropdown-wrapper">
+                                    <button class="btn btn-more" onclick="toggleDropdown(event, 'menu-sys-2')">⋮</button>
+                                    <div class="dropdown-menu" id="menu-sys-2">
+                                        <button onclick="openEditModal('sys-2')">Редактировать</button>
+                                        <button onclick="syncHistory('sys-2')">История синхронизаций</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-system-id="sys-3">
+                        <td class="system-name-cell">СКУД Филиал Восток</td>
+                        <td class="description-cell">Система контроля доступа восточного филиала</td>
+                        <td>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="toggleSystem(this, 'sys-3')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td><span class="status-badge status-error" id="status-sys-3"><span class="status-dot dot-error"></span>ERROR</span></td>
+                        <td>16.05.2026, 22:10</td>
+                        <td>01.03.2026, 08:45</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn btn-sync" onclick="forceSync('sys-3')">⚡ <span>Обновить</span></button>
+                                <button class="btn btn-fields" onclick="openFieldsModal('sys-3', getSystemName('sys-3'))">▦ <span>Поля</span></button>
+                                <div class="dropdown-wrapper">
+                                    <button class="btn btn-more" onclick="toggleDropdown(event, 'menu-sys-3')">⋮</button>
+                                    <div class="dropdown-menu" id="menu-sys-3">
+                                        <button onclick="openEditModal('sys-3')">Редактировать</button>
+                                        <button onclick="syncHistory('sys-3')">История синхронизаций</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-system-id="sys-4">
+                        <td class="system-name-cell">Импорт из CSV (склад)</td>
+                        <td class="description-cell">Разовый импорт камер складского комплекса</td>
+                        <td>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="toggleSystem(this, 'sys-4')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td><span class="status-badge status-progress" id="status-sys-4"><span class="status-dot dot-progress"></span>IN PROGRESS</span></td>
+                        <td>-</td>
+                        <td>20.04.2026, 16:30</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn btn-sync" disabled onclick="forceSync('sys-4')">⚡ <span>Обновить</span></button>
+                                <button class="btn btn-fields" onclick="openFieldsModal('sys-4', getSystemName('sys-4'))">▦ <span>Поля</span></button>
+                                <div class="dropdown-wrapper">
+                                    <button class="btn btn-more" onclick="toggleDropdown(event, 'menu-sys-4')">⋮</button>
+                                    <div class="dropdown-menu" id="menu-sys-4">
+                                        <button onclick="openEditModal('sys-4')">Редактировать</button>
+                                        <button onclick="syncHistory('sys-4')">История синхронизаций</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="fieldsModal">
+        <div class="modal">
+            <div class="modal-title">Поля системы</div>
+            <div class="modal-subtitle" id="fieldsModalSystem">Система: -</div>
+            <ul class="modal-fields" id="fieldsList"></ul>
+            <button class="modal-close" onclick="closeFieldsModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal modal-wide">
+            <div class="modal-title">История синхронизаций</div>
+            <div class="modal-subtitle" id="historyModalSystem">Источник: -</div>
+            <div class="history-summary" id="historySummary"></div>
+            <div class="table-wrapper" id="historyTableWrapper"></div>
+            <div class="modal-actions">
+                <button class="modal-close" onclick="closeHistoryModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-title">Редактировать источник</div>
+            <div class="modal-subtitle" id="editModalSystem">Источник: -</div>
+            <form id="editSourceForm" onsubmit="saveSourceEdit(event)">
+                <input type="hidden" id="editSystemId">
+                <div class="form-group">
+                    <label for="editSystemName">Наименование</label>
+                    <input class="form-control" id="editSystemName" name="name" type="text" required maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label for="editSystemDescription">Описание</label>
+                    <textarea class="form-control" id="editSystemDescription" name="description" maxlength="500"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" type="button" onclick="closeEditModal()">Отмена</button>
+                    <button class="btn-primary" type="submit">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const editableFields = [
+            { label: "Название камеры", locked: true },
+            { label: "Назначение камеры", locked: false },
+            { label: "Город", locked: false },
+            { label: "Адрес установки", locked: false },
+            { label: "Почтовый индекс", locked: false },
+            { label: "Признак ремонта", locked: false },
+            { label: "Заблокирована до", locked: false },
+            { label: "Часовой пояс", locked: false },
+            { label: "Координаты", locked: true },
+            { label: "IP-адрес", locked: true },
+            { label: "Азимут", locked: true },
+            { label: "Угол обзора", locked: false },
+            { label: "Модель камеры", locked: false },
+            { label: "Иконка", locked: false },
+            { label: "ONVIF", locked: false },
+            { label: "Показывать подпись с названием", locked: false },
+            { label: "Теги", locked: false },
+            { label: "Раздел дерева", locked: false },
+            { label: "Статус камеры", locked: false },
+            { label: "Внешняя система", locked: false },
+            { label: "Название потока", locked: false },
+            { label: "URL потока", locked: true },
+            { label: "Тип потока", locked: false },
+            { label: "Видеосервер", locked: false },
+            { label: "Хранение архива", locked: false }
+        ];
+
+        const syncLogs = {
+            "sys-1": [
+                {
+                    id: 1042,
+                    source_id: 1,
+                    syncStartedAt: "2026-05-17T11:28:10Z",
+                    syncFinishedAt: "2026-05-17T11:32:44Z",
+                    totalReceived: 128,
+                    created: 3,
+                    updated: 24,
+                    errors: 0,
+                    errorDetails: null
+                },
+                {
+                    id: 1017,
+                    source_id: 1,
+                    syncStartedAt: "2026-05-16T11:28:09Z",
+                    syncFinishedAt: "2026-05-16T11:31:38Z",
+                    totalReceived: 125,
+                    created: 0,
+                    updated: 7,
+                    errors: 1,
+                    errorDetails: { cameraExternalId: "A-778", message: "Некорректный IP-адрес" }
+                }
+            ],
+            "sys-2": [
+                {
+                    id: 1058,
+                    source_id: 2,
+                    syncStartedAt: "2026-05-18T06:01:12Z",
+                    syncFinishedAt: "2026-05-18T06:05:55Z",
+                    totalReceived: 342,
+                    created: 12,
+                    updated: 81,
+                    errors: 0,
+                    errorDetails: null
+                },
+                {
+                    id: 1033,
+                    source_id: 2,
+                    syncStartedAt: "2026-05-17T06:00:58Z",
+                    syncFinishedAt: "2026-05-17T06:05:21Z",
+                    totalReceived: 330,
+                    created: 4,
+                    updated: 28,
+                    errors: 0,
+                    errorDetails: null
+                }
+            ],
+            "sys-3": [
+                {
+                    id: 1009,
+                    source_id: 3,
+                    syncStartedAt: "2026-05-16T19:06:41Z",
+                    syncFinishedAt: "2026-05-16T19:10:02Z",
+                    totalReceived: 74,
+                    created: 0,
+                    updated: 13,
+                    errors: 5,
+                    errorDetails: {
+                        code: "VALIDATION_ERROR",
+                        messages: ["Не заполнен адрес установки", "Поток недоступен"]
+                    }
+                },
+                {
+                    id: 988,
+                    source_id: 3,
+                    syncStartedAt: "2026-05-15T19:05:20Z",
+                    syncFinishedAt: "2026-05-15T19:08:47Z",
+                    totalReceived: 79,
+                    created: 1,
+                    updated: 10,
+                    errors: 0,
+                    errorDetails: null
+                }
+            ],
+            "sys-4": [
+                {
+                    id: 1071,
+                    source_id: 4,
+                    syncStartedAt: "2026-05-20T08:20:15Z",
+                    syncFinishedAt: null,
+                    totalReceived: 48,
+                    created: 9,
+                    updated: 14,
+                    errors: 0,
+                    errorDetails: null
+                }
+            ]
+        };
+
+        document.addEventListener("click", function(e) {
+            if (!e.target.closest(".dropdown-wrapper")) {
+                closeDropdowns();
+            }
+        });
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") {
+                closeFieldsModal();
+                closeHistoryModal();
+                closeEditModal();
+                closeDropdowns();
+            }
+        });
+
+        function closeDropdowns() {
+            document.querySelectorAll(".dropdown-menu.show").forEach(menu => menu.classList.remove("show"));
+        }
+
+        function toggleDropdown(event, menuId) {
+            event.stopPropagation();
+            const menu = document.getElementById(menuId);
+            const isOpen = menu.classList.contains("show");
+            closeDropdowns();
+            if (!isOpen) {
+                menu.classList.add("show");
+            }
+        }
+
+        function getSystemRow(systemId) {
+            return document.querySelector('tr[data-system-id="' + systemId + '"]');
+        }
+
+        function getSystemName(systemId) {
+            const row = getSystemRow(systemId);
+            return row ? row.querySelector(".system-name-cell").textContent.trim() : systemId;
+        }
+
+        function getSystemDescription(systemId) {
+            const row = getSystemRow(systemId);
+            return row ? row.querySelector(".description-cell").textContent.trim() : "";
+        }
+
+        function forceSync(systemId) {
+            console.log("POST /api/external-systems/" + systemId + "/force-sync");
+            const statusEl = document.getElementById("status-" + systemId);
+            if (!statusEl) return;
+
+            statusEl.innerHTML = '<span class="status-dot dot-progress"></span>IN PROGRESS';
+            statusEl.className = "status-badge status-progress";
+            const row = statusEl.closest("tr");
+            const syncBtn = row.querySelector(".btn-sync");
+            if (syncBtn) syncBtn.disabled = true;
+        }
+
+        function openFieldsModal(systemId, systemName) {
+            document.getElementById("fieldsModalSystem").textContent = "Система: " + systemName;
+            renderFields();
+            document.getElementById("fieldsModal").classList.add("show");
+        }
+
+        function renderFields() {
+            const fieldsList = document.getElementById("fieldsList");
+            fieldsList.innerHTML = "";
+
+            editableFields.forEach(field => {
+                const item = document.createElement("li");
+                const fieldName = document.createElement("span");
+                fieldName.textContent = field.label;
+                item.appendChild(fieldName);
+
+                if (field.locked) {
+                    const badge = document.createElement("span");
+                    badge.className = "locked-badge";
+                    badge.textContent = "заблокировано";
+                    item.appendChild(badge);
+                }
+
+                fieldsList.appendChild(item);
+            });
+        }
+
+        function closeFieldsModal() {
+            document.getElementById("fieldsModal").classList.remove("show");
+        }
+
+        function toggleSystem(checkbox, systemId) {
+            console.log("PATCH /api/external-systems/" + systemId + " is_enabled=" + checkbox.checked);
+            const row = checkbox.closest("tr");
+            const syncBtn = row.querySelector(".btn-sync");
+            if (syncBtn) {
+                syncBtn.disabled = !checkbox.checked;
+            }
+        }
+
+        function syncHistory(systemId) {
+            closeDropdowns();
+            const logs = syncLogs[systemId] || [];
+            document.getElementById("historyModalSystem").textContent = "Источник: " + getSystemName(systemId);
+            renderHistorySummary(logs);
+            renderHistoryTable(logs);
+            document.getElementById("historyModal").classList.add("show");
+            console.log("GET /api/external-systems/" + systemId + "/sync-history");
+        }
+
+        function renderHistorySummary(logs) {
+            const summary = logs.reduce((acc, log) => {
+                acc.totalReceived += log.totalReceived;
+                acc.created += log.created;
+                acc.updated += log.updated;
+                acc.errors += log.errors;
+                return acc;
+            }, { totalReceived: 0, created: 0, updated: 0, errors: 0 });
+
+            document.getElementById("historySummary").innerHTML = [
+                createSummaryCard("Получено устройств", summary.totalReceived),
+                createSummaryCard("Создано камер", summary.created),
+                createSummaryCard("Обновлено камер", summary.updated),
+                createSummaryCard("Ошибки", summary.errors)
+            ].join("");
+        }
+
+        function createSummaryCard(label, value) {
+            return '<div class="summary-card">' +
+                '<div class="summary-label">' + escapeHtml(label) + '</div>' +
+                '<div class="summary-value">' + value + '</div>' +
+            '</div>';
+        }
+
+        function renderHistoryTable(logs) {
+            const wrapper = document.getElementById("historyTableWrapper");
+
+            if (!logs.length) {
+                wrapper.innerHTML = '<div class="empty-state">История синхронизаций пока отсутствует</div>';
+                return;
+            }
+
+            const rows = logs.map(log => {
+                const statusClass = log.syncFinishedAt ? (log.errors > 0 ? "status-error" : "status-success") : "status-progress";
+                const dotClass = log.syncFinishedAt ? (log.errors > 0 ? "dot-error" : "dot-success") : "dot-progress";
+                const statusText = log.syncFinishedAt ? (log.errors > 0 ? "ERROR" : "SUCCESS") : "IN PROGRESS";
+
+                return '<tr>' +
+                    '<td>' + log.id + '</td>' +
+                    '<td>' + log.source_id + '</td>' +
+                    '<td>' + formatDateTime(log.syncStartedAt) + '</td>' +
+                    '<td>' + formatDateTime(log.syncFinishedAt) + '</td>' +
+                    '<td><span class="status-badge ' + statusClass + '"><span class="status-dot ' + dotClass + '"></span>' + statusText + '</span></td>' +
+                    '<td class="numeric-cell">' + log.totalReceived + '</td>' +
+                    '<td class="numeric-cell">' + log.created + '</td>' +
+                    '<td class="numeric-cell">' + log.updated + '</td>' +
+                    '<td class="numeric-cell">' + log.errors + '</td>' +
+                    '<td class="error-details" title="' + escapeHtml(formatErrorDetails(log.errorDetails)) + '">' + escapeHtml(formatErrorDetails(log.errorDetails)) + '</td>' +
+                '</tr>';
+            }).join("");
+
+            wrapper.innerHTML = '<table class="history-table">' +
+                '<thead>' +
+                    '<tr>' +
+                        '<th>ID</th>' +
+                        '<th>Источник</th>' +
+                        '<th>Начало</th>' +
+                        '<th>Конец</th>' +
+                        '<th>Статус</th>' +
+                        '<th>Получено</th>' +
+                        '<th>Создано</th>' +
+                        '<th>Обновлено</th>' +
+                        '<th>Ошибки</th>' +
+                        '<th>Детали ошибок</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>' + rows + '</tbody>' +
+            '</table>';
+        }
+
+        function closeHistoryModal() {
+            document.getElementById("historyModal").classList.remove("show");
+        }
+
+        function openEditModal(systemId) {
+            closeDropdowns();
+            const name = getSystemName(systemId);
+            document.getElementById("editSystemId").value = systemId;
+            document.getElementById("editSystemName").value = name;
+            document.getElementById("editSystemDescription").value = getSystemDescription(systemId);
+            document.getElementById("editModalSystem").textContent = "Источник: " + name;
+            document.getElementById("editModal").classList.add("show");
+            document.getElementById("editSystemName").focus();
+        }
+
+        function saveSourceEdit(event) {
+            event.preventDefault();
+            const systemId = document.getElementById("editSystemId").value;
+            const name = document.getElementById("editSystemName").value.trim();
+            const description = document.getElementById("editSystemDescription").value.trim();
+            const row = getSystemRow(systemId);
+
+            if (!row || !name) {
+                return;
+            }
+
+            row.querySelector(".system-name-cell").textContent = name;
+            row.querySelector(".description-cell").textContent = description;
+            console.log("PATCH /api/external-systems/" + systemId, { name, description });
+            closeEditModal();
+        }
+
+        function closeEditModal() {
+            document.getElementById("editModal").classList.remove("show");
+        }
+
+        function formatDateTime(value) {
+            if (!value) return "-";
+            const formatter = new Intl.DateTimeFormat("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+            return formatter.format(new Date(value)).replace(",", "");
+        }
+
+        function formatErrorDetails(details) {
+            if (!details) return "-";
+            return typeof details === "string" ? details : JSON.stringify(details);
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.getElementById("fieldsModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeFieldsModal();
+            }
+        });
+
+        document.getElementById("historyModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeHistoryModal();
+            }
+        });
+
+        document.getElementById("editModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>
