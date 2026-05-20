@@ -13,8 +13,7 @@ box "Платформа" #EEF7FF
 participant "Планировщик\n(Cron/Timer)" as Scheduler
 participant "Integration Service\n(Finder Sync)" as Sync
 participant "EnM\nEntity Management" as EnM
-participant "Camera Service\n(Service Layer)" as CameraService
-database "БД камер\nUNIQUE(external_id)" as CameraDB
+database "Хранилище EnM\nкамеры / потоки / системы\nUNIQUE(external_id)" as EnMStore
 participant "Audit / Error Log" as Log
 participant "Notification Service" as Notify
 end box
@@ -26,10 +25,10 @@ end box
 == Запуск синхронизации ==
 
 alt Регулярный запуск по расписанию
-    Scheduler -> Sync: startSync(source = "Finder")
+    Scheduler -> Sync: startSync(source = "Finder", trigger = scheduled)
 else Ручной запуск администратором
     Admin -> EnM: Нажать "Синхронизировать Finder"
-    EnM -> Sync: startSync(source = "Finder", triggeredBy = Admin)
+    EnM -> Sync: startSync(source = "Finder", trigger = manual)
 end
 
 Sync -> Sync: Создать sync-session\nпрочитать URL, расписание, признак/тип комплекса
@@ -51,82 +50,96 @@ end
 
 alt Все 3 попытки исчерпаны
     Sync -> Log: Ошибка интеграции Finder\nsync-session failed
-    Sync -> Notify: Уведомить администратора\nо недоступности Finder
-    Sync --> Scheduler: Завершить сессию до следующего запуска
+    alt trigger = scheduled
+        Sync -> Notify: Уведомить администратора\nо плановой синхронизации с ошибкой
+    else trigger = manual
+        Sync --> EnM: Вернуть ошибку синхронизации
+        EnM --> Admin: Показать ошибку в интерфейсе
+    end
+    Sync -> Sync: Завершить сессию\nдо следующего запуска
 else Список устройств получен
 
     == Обработка устройств ==
 
     loop Для каждого устройства из ответа Finder
-        Sync -> CameraService: upsertExternalCamera(device,\nsource = "Finder")
-        note right of CameraService
-            Валидация и контроль изменений выполняются
-            на service layer, чтобы правило работало
-            для API и внутренних вызовов.
+        Sync -> EnM: upsertExternalCamera(device,\nsource = "Finder")
+        note right of EnM
+            EnM отвечает за сущности камер, потоки
+            и системы. Отдельный Camera Service
+            в этой схеме не выделяется.
         end note
 
-        CameraService -> CameraDB: Найти камеру по external_id
+        EnM -> EnMStore: Найти камеру по external_id
 
         alt external_id не найден
-            CameraDB --> CameraService: Камера отсутствует
-            CameraService -> CameraDB: Создать Camera\nexternal_id = device.id\nsource_system = Finder\nтип/признак источника\nстатус = "требует настройки"\nмастер-поля из Finder
-            CameraDB --> CameraService: Камера создана
-            CameraService -> Log: Audit: создана камера\nexternal_id, camera_id
-            CameraService -> Notify: Уведомить о новой камере\nдля дальнейшей настройки
+            EnMStore --> EnM: Камера отсутствует
+            EnM -> EnMStore: Создать Camera\nexternal_id = device.id\nsource_system = Finder\nтип/признак источника\nстатус = "требует настройки"\nполя из Finder + source=Finder
+            EnMStore --> EnM: Камера создана
+            EnM -> Log: Audit: создана камера\nexternal_id, camera_id
 
         else external_id найден
-            CameraDB --> CameraService: Текущая Camera
-            CameraService -> CameraService: Сравнить мастер-поля Finder\nс текущими значениями
+            EnMStore --> EnM: Текущая Camera\n+ metadata source полей
+            EnM -> EnM: Сравнить данные Finder\nс текущими значениями EnM
 
-            alt Найдены расхождения
-                CameraService -> CameraDB: Обновить только поля,\nконтролируемые Finder
-                CameraDB --> CameraService: Камера обновлена
-                CameraService -> Log: Audit: обновлены мастер-поля\nexternal_id, список изменений
+            alt Найдены новые данные Finder\nдля незаполненных внешних полей
+                EnM -> EnMStore: Сохранить только новые значения\nбез перезаписи уже полученных из Finder
+                EnMStore --> EnM: Камера обновлена
+                EnM -> Log: Audit: добавлены новые внешние данные\nexternal_id, список изменений
+            else Расхождения по полям,\nуже полученным из Finder
+                EnM -> Log: Audit: расхождения зафиксированы,\nзначения EnM не перезаписаны\nexternal_id, список расхождений
             else Изменений нет
-                CameraService -> Log: Audit/debug: без изменений\nexternal_id
+                EnM -> Log: Audit/debug: без изменений\nexternal_id
             end
         end
 
         alt Ошибка обработки конкретного устройства
-            CameraService --> Sync: Ошибка валидации/сохранения\nexternal_id, причина
+            EnM --> Sync: Ошибка валидации/сохранения\nexternal_id, причина
             Sync -> Log: Error: проблемное устройство\nexternal_id, причина
-            Sync -> Notify: Добавить ошибку в отчет\nдля администратора
+            Sync -> Sync: Зафиксировать ошибку\nв результате sync-session
             Sync -> Sync: Продолжить обработку следующего устройства
         else Устройство обработано успешно
-            CameraService --> Sync: OK
+            EnM --> Sync: OK
         end
     end
 
     Sync -> Log: Записать статистику сессии\ncreated, updated, skipped, failed
-    Sync -> Notify: Отправить итог синхронизации\nесли есть новые камеры или ошибки
-    Sync --> Scheduler: sync-session completed
+    alt failed > 0 и trigger = scheduled
+        Sync -> Notify: Уведомить администратора\nо плановой синхронизации с ошибкой
+    else Ошибок нет или запуск ручной
+        Sync -> Log: Нотификация не отправляется
+    end
+
+    alt trigger = manual
+        Sync --> EnM: Результат синхронизации\ncreated, updated, skipped, failed
+        EnM --> Admin: Показать результат в интерфейсе
+    else trigger = scheduled
+        Sync --> Scheduler: sync-session completed
+    end
 end
 
 == Ручное редактирование камеры в EnM ==
 
 Admin -> EnM: Открыть карточку камеры
-EnM -> CameraService: getCamera(camera_id)
-CameraService -> CameraDB: Прочитать камеру
-CameraDB --> CameraService: Camera + source_system + locked_fields
-CameraService --> EnM: Данные камеры и список заблокированных полей
-EnM --> Admin: Показать форму\nзаблокированные поля readonly + tooltip
+EnM -> EnMStore: Прочитать камеру
+EnMStore --> EnM: Camera + field_source metadata
+EnM --> Admin: Показать форму\nполя Finder помечены как внешние,\nно не заблокированы
 
 Admin -> EnM: Сохранить изменения камеры
-EnM -> CameraService: updateCamera(camera_id, patch)
+EnM -> EnM: Разделить patch на поля платформы\nи поля с source=Finder
 
-alt patch содержит поле, контролируемое Finder
-    CameraService -> Log: Audit/error: попытка изменения\nзаблокированного поля
-    CameraService --> EnM: 409/422 LockedFieldError\nполе, причина блокировки
-    EnM --> Admin: Показать ошибку и tooltip:\n"Поле управляется Finder"
+alt patch содержит поля с source=Finder
+    EnM -> EnMStore: Сохранить только поля платформы\nполя Finder не перезаписывать
+    EnMStore --> EnM: OK
+    EnM -> Log: Audit: изменения внешних полей проигнорированы\ncamera_id, список полей
+    EnM --> Admin: Изменения сохранены\nполя Finder оставлены без изменений
 else изменяются только бизнес-атрибуты платформы
-    CameraService -> CameraDB: Обновить разрешенные поля\nадрес, теги, настройки и т.п.
-    CameraDB --> CameraService: OK
-    CameraService -> Log: Audit: обновлены\nплатформенные атрибуты
-    CameraService --> EnM: OK
+    EnM -> EnMStore: Обновить поля платформы\nадрес, теги, настройки и т.п.
+    EnMStore --> EnM: OK
+    EnM -> Log: Audit: обновлены\nплатформенные атрибуты
     EnM --> Admin: Изменения сохранены
 end
 
-note over CameraDB
+note over EnMStore
     Идемпотентность обеспечивается UNIQUE(external_id):
     повторная синхронизация одного и того же списка
     не создает дубли камер.
