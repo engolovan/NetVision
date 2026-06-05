@@ -660,6 +660,123 @@
       .tabs { max-width: 100%; overflow-x: auto; }
       .drawer { width: 100vw; }
     }
+
+
+    /* Prototype update: centered form, bulk list actions, table filters. */
+    .drawer {
+      top: 50%;
+      left: 50%;
+      right: auto;
+      width: min(960px, calc(100vw - 36px));
+      height: auto;
+      max-height: 92vh;
+      transform: translate(-50%, -46%) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .drawer.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer-body { max-height: calc(92vh - 148px); }
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .bulk-actions { display: flex; gap: 10px; align-items: center; }
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+      box-shadow: none;
+    }
+    .filter-row th { padding: 10px 12px; background: rgba(7, 17, 31, 0.52); }
+    .header-filter { min-width: 130px; min-height: 34px; padding: 7px 9px; border-radius: 10px; font-size: 12px; }
+    .mini-check { width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer; }
+    .row-clickable { cursor: pointer; }
+    .row-clickable:hover td { background: rgba(38, 132, 255, 0.075); }
+    .type-select-wrap { display: grid; gap: 8px; }
+    .camera-picker {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: stretch;
+    }
+    .camera-map-tile {
+      position: relative;
+      min-height: 170px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(38,132,255,0.08) 1px, transparent 1px),
+        linear-gradient(rgba(38,132,255,0.08) 1px, transparent 1px),
+        radial-gradient(circle at 26% 40%, rgba(38, 132, 255, 0.22), transparent 10rem),
+        #081424;
+      background-size: 28px 28px, 28px 28px, auto, auto;
+    }
+    .camera-map-tile::before {
+      content: "";
+      position: absolute;
+      left: 28%;
+      top: 28%;
+      width: 44%;
+      height: 38%;
+      border-radius: 28px 54px 24px 42px;
+      border: 2px dashed rgba(143, 164, 194, 0.5);
+      background: rgba(143, 164, 194, 0.07);
+      transition: 0.2s ease;
+    }
+    .camera-map-tile.selected::before {
+      border-style: solid;
+      border-color: var(--blue);
+      background: rgba(38, 132, 255, 0.18);
+      box-shadow: 0 0 0 8px rgba(38, 132, 255, 0.08), 0 0 32px rgba(38, 132, 255, 0.24);
+    }
+    .camera-tooltip {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%) translateY(-6px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: #10213a;
+      border: 1px solid var(--border);
+      color: #dceaff;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: 0.18s ease;
+    }
+    .camera-map-tile.selected:hover .camera-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .number-table-wrap {
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      background: rgba(7, 17, 31, 0.35);
+    }
+    .number-table { min-width: 0; }
+    .number-table th, .number-table td { padding: 10px 12px; }
+    .upload-note {
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      border-radius: 10px;
+      background: rgba(7, 17, 31, 0.45);
+      border: 1px solid var(--border-soft);
+    }
+
   </style>
 </head>
 <body>
@@ -694,14 +811,7 @@
         </div>
       </section>
 
-      <section class="summary-grid">
-        <div class="metric"><div class="metric-value">18</div><div class="metric-label">Всего списков</div></div>
-        <div class="metric"><div class="metric-value">12</div><div class="metric-label">Активные</div></div>
-        <div class="metric"><div class="metric-value">3 482</div><div class="metric-label">Номера в списках</div></div>
-        <div class="metric"><div class="metric-value">164</div><div class="metric-label">Сработки за период</div></div>
-      </section>
-
-      <section class="tab-panel active" id="tab-lists">
+      <section class="tab-panel active" id="tab-lists">      <section class="tab-panel active" id="tab-lists">
         <div class="panel">
           <div class="panel-header">
             <div>
@@ -710,32 +820,18 @@
             </div>
             <button class="btn primary" type="button" id="openCreateBtn">+ Создать список</button>
           </div>
-          <div class="toolbar">
+          <div class="action-bar">
             <button class="btn primary" type="button" id="openCreateBtn2">Создать список</button>
-            <input class="field" type="search" id="searchInput" placeholder="Поиск по названию или номеру" />
-            <select class="select" id="typeFilter" aria-label="Фильтр по типу">
-              <option value="all">Все типы</option>
-              <option value="Черный">Черный</option>
-              <option value="Белый">Белый</option>
-            </select>
-            <select class="select" id="statusFilter" aria-label="Фильтр по статусу">
-              <option value="all">Все статусы</option>
-              <option value="Активен">Активен</option>
-              <option value="Запланирован">Запланирован</option>
-              <option value="Истек">Истек</option>
-              <option value="Архивирован">Архивирован</option>
-            </select>
-            <select class="select" id="cameraFilter" aria-label="Фильтр по камерам">
-              <option value="all">Все камеры</option>
-              <option value="Офис">Офис</option>
-              <option value="Склад">Склад</option>
-              <option value="Все камеры">Без ограничений</option>
-            </select>
+            <div class="bulk-actions">
+              <button class="btn" type="button" id="bulkArchiveBtn" disabled>Архивировать выбранные</button>
+              <button class="btn danger" type="button" id="bulkDeleteBtn" disabled>Удалить выбранные</button>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
+                  <th><input class="mini-check" type="checkbox" id="selectAllLists" aria-label="Выбрать все списки" /></th>
                   <th>Название</th>
                   <th>Тип списка</th>
                   <th>Статус</th>
@@ -744,7 +840,17 @@
                   <th>Камеры</th>
                   <th>Создан</th>
                   <th>Изменен</th>
-                  <th>Действия</th>
+                </tr>
+                <tr class="filter-row">
+                  <th></th>
+                  <th><input class="field header-filter" type="search" id="searchInput" placeholder="Название или номер" /></th>
+                  <th><select class="select header-filter" id="typeFilter" aria-label="Фильтр по типу"><option value="all">Все</option><option value="Черный">Черный</option><option value="Белый">Белый</option></select></th>
+                  <th><select class="select header-filter" id="statusFilter" aria-label="Фильтр по статусу"><option value="all">Все</option><option value="Активен">Активен</option><option value="Запланирован">Запланирован</option><option value="Истек">Истек</option><option value="Архивирован">Архивирован</option></select></th>
+                  <th></th>
+                  <th></th>
+                  <th><select class="select header-filter" id="cameraFilter" aria-label="Фильтр по камерам"><option value="all">Все</option><option value="Камеры выбраны">Камеры выбраны</option><option value="Без ограничений">Без ограничений</option></select></th>
+                  <th></th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody id="listsTable"></tbody>
@@ -840,13 +946,12 @@
       <div class="error-box" id="formErrors"></div>
       <div class="form-grid">
         <label class="span-2"><strong>Название списка</strong><input class="field" id="listName" placeholder="Например, Контроль должников" /></label>
-        <div class="span-2">
-          <label><strong>Тип списка</strong></label>
-          <div class="choice-row" style="margin-top:8px;">
-            <div class="choice-card active" data-list-type="Черный"><strong>Черный список</strong><span>Сработка создается, если номер есть в списке.</span></div>
-            <div class="choice-card" data-list-type="Белый"><strong>Белый список</strong><span>Сработка создается, если номера нет в списке.</span></div>
-          </div>
-        </div>
+        <label class="span-2 type-select-wrap"><strong>Тип списка</strong>
+          <select class="select" id="listTypeSelect">
+            <option value="Черный">Черный список</option>
+            <option value="Белый">Белый список</option>
+          </select>
+        </label>
         <div class="span-2 hint" id="typeHint">Сработка создается, если распознанный номер есть в списке.</div>
         <label><strong>Дата и время начала</strong><input class="field" id="dateStart" type="datetime-local" value="2026-06-06T09:00" /></label>
         <label><strong>Дата и время окончания</strong><input class="field" id="dateEnd" type="datetime-local" value="2026-07-06T18:00" /></label>
@@ -856,14 +961,11 @@
       <div class="section-card">
         <h3>Камеры</h3>
         <label class="check-row"><input type="checkbox" id="allCamerasCheck" /> Без ограничений по камерам</label>
-        <div class="checkbox-list" id="cameraChecks">
-          <label class="check-row"><input type="checkbox" value="КПП Север" checked /> КПП Север</label>
-          <label class="check-row"><input type="checkbox" value="Офис: въезд" /> Офис: въезд</label>
-          <label class="check-row"><input type="checkbox" value="Склад: ворота 2" /> Склад: ворота 2</label>
-          <label class="check-row"><input type="checkbox" value="Парковка B" /> Парковка B</label>
-        </div>
-        <div class="upload-zone">
-          <div><strong>Выбор камер на карте</strong><div class="panel-caption">Нарисуйте область и создайте перечень камер.</div></div>
+        <div class="camera-picker">
+          <div class="camera-map-tile selected" id="cameraMapTile" title="Камеры выбраны">
+            <span class="camera-dot"></span><span class="camera-dot"></span><span class="camera-dot"></span>
+            <span class="camera-tooltip">Камеры выбраны</span>
+          </div>
           <button class="btn" type="button" id="openMapBtn">Выбрать на карте</button>
         </div>
       </div>
@@ -874,13 +976,28 @@
           <input class="field" id="numberInput" placeholder="Введите номер, например A123BC77" />
           <button class="btn primary" id="addNumberBtn" type="button">Добавить номер</button>
         </div>
-        <div class="number-list" id="numberList"></div>
+        <div class="number-table-wrap">
+          <table class="number-table">
+            <thead>
+              <tr>
+                <th><input class="mini-check" type="checkbox" id="selectAllNumbers" aria-label="Выбрать все номера" /></th>
+                <th>Номер</th>
+                <th>Источник</th>
+              </tr>
+            </thead>
+            <tbody id="numberTableBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn danger small" id="deleteSelectedNumbersBtn" type="button" disabled>Удалить выбранные</button>
+        </div>
       </div>
 
       <div class="section-card">
         <h3>Пакетная загрузка</h3>
+        <div class="upload-note">Требование к файлу: поддерживаются только CSV или XLSX.</div>
         <div class="upload-zone">
-          <div><strong>CSV/XLSX с обязательной колонкой номера</strong><div class="panel-caption">Файл проверяется на тип, размер, дубликаты и некорректные строки.</div></div>
+          <div><strong>Загрузка файла номеров</strong></div>
           <button class="btn" type="button" id="uploadMockBtn">Загрузить файл</button>
         </div>
         <div class="upload-result" id="uploadResult" style="display:none;">
@@ -956,7 +1073,7 @@
         status: "Активен",
         numbers: ["A123BC77", "M778OO197", "K042MP50"],
         period: "06.06.2026 - 06.07.2026",
-        cameras: "КПП Север, Офис: въезд",
+        cameras: "Камеры выбраны",
         created: "05.06.2026",
         updated: "05.06.2026"
       },
@@ -966,7 +1083,7 @@
         status: "Запланирован",
         numbers: ["E500KX777", "X014AM97", "B777OP99"],
         period: "10.06.2026 - бессрочно",
-        cameras: "Офис",
+        cameras: "Камеры выбраны",
         created: "04.06.2026",
         updated: "05.06.2026"
       },
@@ -976,7 +1093,7 @@
         status: "Архивирован",
         numbers: ["T202EC78", "C919CC199"],
         period: "01.02.2026 - 01.05.2026",
-        cameras: "Склад",
+        cameras: "Камеры выбраны",
         created: "01.02.2026",
         updated: "01.05.2026"
       },
@@ -986,7 +1103,7 @@
         status: "Истек",
         numbers: ["AA7788AA", "ZX4219TR"],
         period: "01.05.2026 - 31.05.2026",
-        cameras: "Все камеры",
+        cameras: "Без ограничений",
         created: "28.04.2026",
         updated: "31.05.2026"
       }
@@ -1014,7 +1131,10 @@
       selectedType: "Черный",
       drawerMode: "create",
       editingList: null,
-      numbers: ["A123BC77", "M778OO197"]
+      numbers: ["A123BC77", "M778OO197"],
+      selectedNumbers: new Set(),
+      selectedListIndexes: new Set(),
+      cameraSelected: true
     };
 
     const $ = (selector) => document.querySelector(selector);
@@ -1045,7 +1165,8 @@
         });
 
       $("#listsTable").innerHTML = filtered.map(({ item, sourceIndex }) => `
-        <tr>
+        <tr class="row-clickable" data-row-index="${sourceIndex}">
+          <td><input class="mini-check row-select" type="checkbox" data-index="${sourceIndex}" ${state.selectedListIndexes.has(sourceIndex) ? "checked" : ""} aria-label="Выбрать список ${item.name}" /></td>
           <td><strong>${item.name}</strong><div class="muted">${item.numbers.slice(0, 2).join(", ")}${item.numbers.length > 2 ? "..." : ""}</div></td>
           <td><span class="badge ${item.type === "Черный" ? "black" : "white"}">${item.type}</span></td>
           <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td>
@@ -1054,18 +1175,19 @@
           <td>${item.cameras}</td>
           <td>${item.created}</td>
           <td>${item.updated}</td>
-          <td>
-            <div class="row-actions">
-              <button class="btn small" data-action="view" data-index="${sourceIndex}">Просмотр</button>
-              <button class="btn small" data-action="edit" data-index="${sourceIndex}">Редактировать</button>
-              <button class="btn small" data-action="archive" data-index="${sourceIndex}">Архивировать</button>
-              <button class="btn small danger" data-action="delete" data-index="${sourceIndex}">Удалить</button>
-            </div>
-          </td>
         </tr>
       `).join("");
 
       $("#emptyState").classList.toggle("visible", filtered.length === 0);
+      updateBulkActions();
+    }
+
+    function updateBulkActions() {
+      const hasSelected = state.selectedListIndexes.size > 0;
+      $("#bulkArchiveBtn").disabled = !hasSelected;
+      $("#bulkDeleteBtn").disabled = !hasSelected;
+      const visibleChecks = $$(".row-select");
+      $("#selectAllLists").checked = visibleChecks.length > 0 && visibleChecks.every(input => input.checked);
     }
 
     function setTab(tab) {
@@ -1076,19 +1198,26 @@
     function openDrawer(mode = "create", item = null) {
       state.drawerMode = mode;
       state.editingList = item;
-      $("#drawerTitle").textContent = mode === "edit" ? "Редактировать список" : "Создать список";
+      $("#drawerTitle").textContent = mode === "edit" ? "Просмотр и редактирование списка" : "Создать список";
       $("#formErrors").classList.remove("visible");
       if (item) {
         $("#listName").value = item.name;
         state.selectedType = item.type;
         state.numbers = [...item.numbers];
+        state.selectedNumbers = new Set();
+        $("#allCamerasCheck").checked = item.cameras === "Без ограничений";
+        state.cameraSelected = item.cameras !== "Без ограничений";
       } else {
         $("#listName").value = "";
         state.selectedType = "Черный";
         state.numbers = ["A123BC77", "M778OO197"];
+        state.selectedNumbers = new Set();
+        $("#allCamerasCheck").checked = false;
+        state.cameraSelected = true;
       }
-      syncTypeCards();
+      syncTypeSelect();
       renderNumbers();
+      updateCameraPicker();
       $("#drawerBackdrop").classList.add("open");
       $("#listDrawer").classList.add("open");
       $("#listDrawer").setAttribute("aria-hidden", "false");
@@ -1100,11 +1229,16 @@
       $("#listDrawer").setAttribute("aria-hidden", "true");
     }
 
-    function syncTypeCards() {
-      $$(".choice-card").forEach(card => card.classList.toggle("active", card.dataset.listType === state.selectedType));
+    function syncTypeSelect() {
+      $("#listTypeSelect").value = state.selectedType;
       $("#typeHint").textContent = state.selectedType === "Черный"
         ? "Сработка создается, если распознанный номер есть в списке."
         : "Сработка создается, если распознанного номера нет в списке.";
+    }
+
+    function updateCameraPicker() {
+      $("#cameraMapTile").classList.toggle("selected", state.cameraSelected && !$("#allCamerasCheck").checked);
+      $("#openMapBtn").disabled = $("#allCamerasCheck").checked;
     }
 
     function normalizeNumber(value) {
@@ -1112,9 +1246,20 @@
     }
 
     function renderNumbers() {
-      $("#numberList").innerHTML = state.numbers.map(num => `
-        <span class="number-pill">${num}<button type="button" data-remove-number="${num}" aria-label="Удалить номер ${num}">×</button></span>
+      $("#numberTableBody").innerHTML = state.numbers.map((num) => `
+        <tr>
+          <td><input class="mini-check number-select" type="checkbox" data-number="${num}" ${state.selectedNumbers.has(num) ? "checked" : ""} aria-label="Выбрать номер ${num}" /></td>
+          <td><strong>${num}</strong></td>
+          <td><span class="muted">${num.startsWith("H") || num.startsWith("P") || num.startsWith("E") ? "Импорт" : "Ручной ввод"}</span></td>
+        </tr>
       `).join("");
+      updateNumberActions();
+    }
+
+    function updateNumberActions() {
+      $("#deleteSelectedNumbersBtn").disabled = state.selectedNumbers.size === 0;
+      const visibleChecks = $$(".number-select");
+      $("#selectAllNumbers").checked = visibleChecks.length > 0 && visibleChecks.every(input => input.checked);
     }
 
     function addNumber() {
@@ -1127,6 +1272,7 @@
       if (state.numbers.includes(normalized)) errors.push("Такой номер уже есть в списке.");
       if (errors.length) return showFormErrors(errors);
       state.numbers.push(normalized);
+      state.selectedNumbers.clear();
       $("#numberInput").value = "";
       $("#formErrors").classList.remove("visible");
       renderNumbers();
@@ -1146,7 +1292,6 @@
       const end = $("#dateEnd").value;
       const unlimited = $("#unlimitedCheck").checked;
       const allCameras = $("#allCamerasCheck").checked;
-      const selectedCameras = $$("#cameraChecks input:checked");
 
       if (!name) errors.push("Заполните название списка.");
       if (!state.selectedType) errors.push("Выберите тип списка.");
@@ -1154,7 +1299,7 @@
       if (!unlimited && !end) errors.push("Укажите дату и время окончания или выберите бессрочный режим.");
       if (!unlimited && start && end && new Date(end) <= new Date(start)) errors.push("Дата окончания должна быть позже даты начала.");
       if (!state.numbers.length) errors.push("Добавьте хотя бы один номер.");
-      if (!allCameras && selectedCameras.length === 0) errors.push("Выберите камеру или включите режим без ограничений по камерам.");
+      if (!allCameras && !state.cameraSelected) errors.push("Выберите камеры на карте или включите режим без ограничений по камерам.");
       if (errors.length) return showFormErrors(errors);
 
       const newItem = {
@@ -1227,37 +1372,79 @@
     $("#openMapBtn").addEventListener("click", openMap);
     $("#closeMapBtn").addEventListener("click", closeMap);
     $("#cancelMapBtn").addEventListener("click", closeMap);
-    $("#applyMapBtn").addEventListener("click", () => { closeMap(); showToast("Камеры из области выбраны"); });
+    $("#applyMapBtn").addEventListener("click", () => { state.cameraSelected = true; updateCameraPicker(); closeMap(); showToast("Камеры выбраны на карте"); });
     $("#closeTriggerBtn").addEventListener("click", closeTriggers);
     $("#closeTriggerBtn2").addEventListener("click", closeTriggers);
     $("#backToListBtn").addEventListener("click", closeTriggers);
     $("#unlimitedCheck").addEventListener("change", (event) => { $("#dateEnd").disabled = event.target.checked; });
-    $("#allCamerasCheck").addEventListener("change", (event) => {
-      $$("#cameraChecks input").forEach(input => input.disabled = event.target.checked);
+    $("#allCamerasCheck").addEventListener("change", updateCameraPicker);
+
+    $("#listTypeSelect").addEventListener("change", (event) => {
+      state.selectedType = event.target.value;
+      syncTypeSelect();
     });
 
-    $$(".choice-card").forEach(card => card.addEventListener("click", () => {
-      state.selectedType = card.dataset.listType;
-      syncTypeCards();
-    }));
+    $("#numberTableBody").addEventListener("change", (event) => {
+      if (!event.target.classList.contains("number-select")) return;
+      const num = event.target.dataset.number;
+      if (event.target.checked) state.selectedNumbers.add(num);
+      else state.selectedNumbers.delete(num);
+      updateNumberActions();
+    });
 
-    $("#numberList").addEventListener("click", (event) => {
-      const num = event.target.dataset.removeNumber;
-      if (!num) return;
-      state.numbers = state.numbers.filter(item => item !== num);
+    $("#selectAllNumbers").addEventListener("change", (event) => {
+      $$(".number-select").forEach(input => {
+        input.checked = event.target.checked;
+        if (event.target.checked) state.selectedNumbers.add(input.dataset.number);
+        else state.selectedNumbers.delete(input.dataset.number);
+      });
+      updateNumberActions();
+    });
+
+    $("#deleteSelectedNumbersBtn").addEventListener("click", () => {
+      state.numbers = state.numbers.filter(num => !state.selectedNumbers.has(num));
+      state.selectedNumbers.clear();
       renderNumbers();
-      showToast("Номер удален");
+      showToast("Выбранные номера удалены");
     });
 
     $("#listsTable").addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-action]");
-      if (!button) return;
-      const item = lists[Number(button.dataset.index)];
-      const action = button.dataset.action;
-      if (action === "view") openTriggers(item);
-      if (action === "edit") openDrawer("edit", item);
-      if (action === "archive") { item.status = "Архивирован"; renderLists(); showToast("Список архивирован"); }
-      if (action === "delete") { lists.splice(Number(button.dataset.index), 1); renderLists(); showToast("Список удален"); }
+      const checkbox = event.target.closest(".row-select");
+      if (checkbox) {
+        const index = Number(checkbox.dataset.index);
+        if (checkbox.checked) state.selectedListIndexes.add(index);
+        else state.selectedListIndexes.delete(index);
+        updateBulkActions();
+        event.stopPropagation();
+        return;
+      }
+      const row = event.target.closest("tr[data-row-index]");
+      if (!row) return;
+      openDrawer("edit", lists[Number(row.dataset.rowIndex)]);
+    });
+
+    $("#selectAllLists").addEventListener("change", (event) => {
+      $$(".row-select").forEach(input => {
+        input.checked = event.target.checked;
+        const index = Number(input.dataset.index);
+        if (event.target.checked) state.selectedListIndexes.add(index);
+        else state.selectedListIndexes.delete(index);
+      });
+      updateBulkActions();
+    });
+
+    $("#bulkArchiveBtn").addEventListener("click", () => {
+      state.selectedListIndexes.forEach(index => { if (lists[index]) lists[index].status = "Архивирован"; });
+      state.selectedListIndexes.clear();
+      renderLists();
+      showToast("Выбранные списки архивированы");
+    });
+
+    $("#bulkDeleteBtn").addEventListener("click", () => {
+      [...state.selectedListIndexes].sort((a, b) => b - a).forEach(index => lists.splice(index, 1));
+      state.selectedListIndexes.clear();
+      renderLists();
+      showToast("Выбранные списки удалены");
     });
 
     renderLists();
