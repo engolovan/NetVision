@@ -1,0 +1,1267 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Черные и белые списки номеров</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0b1728;
+      --panel: #101d30;
+      --panel-2: #13223a;
+      --panel-3: #172943;
+      --border: #263a59;
+      --border-soft: #1e304c;
+      --text: #e8f1ff;
+      --muted: #8fa4c2;
+      --muted-2: #617691;
+      --blue: #2684ff;
+      --blue-2: #0f6be6;
+      --blue-soft: rgba(38, 132, 255, 0.16);
+      --red: #ff5e75;
+      --red-soft: rgba(255, 94, 117, 0.13);
+      --green: #3ddc97;
+      --green-soft: rgba(61, 220, 151, 0.13);
+      --yellow: #f6c85f;
+      --yellow-soft: rgba(246, 200, 95, 0.14);
+      --purple: #a879ff;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(38, 132, 255, 0.24), transparent 34rem),
+        radial-gradient(circle at top right, rgba(168, 121, 255, 0.13), transparent 38rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 14px 28px;
+      background: rgba(7, 17, 31, 0.86);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), #7bb7ff);
+      box-shadow: 0 10px 28px rgba(38, 132, 255, 0.32);
+      font-weight: 900;
+      color: white;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 760;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-subtitle {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main-menu {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .main-menu button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 10px 15px;
+      color: var(--muted);
+      background: transparent;
+      transition: 0.2s ease;
+    }
+
+    .main-menu button:hover,
+    .main-menu button.active {
+      color: var(--text);
+      background: var(--blue-soft);
+      border-color: rgba(38, 132, 255, 0.32);
+    }
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(16, 29, 48, 0.72);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #1d3355;
+      color: #bcd7ff;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .workspace {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 28px auto 48px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      color: #76adff;
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 6px;
+      background: rgba(16, 29, 48, 0.72);
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      width: fit-content;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn {
+      border: 0;
+      color: var(--muted);
+      background: transparent;
+      padding: 10px 15px;
+      border-radius: 999px;
+      transition: 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 10px 24px rgba(38, 132, 255, 0.24);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: grid; gap: 18px; }
+
+    .panel {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(19, 34, 58, 0.93), rgba(12, 24, 41, 0.93));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 760;
+    }
+
+    .panel-caption {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: auto minmax(260px, 1fr) repeat(3, minmax(145px, 180px));
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-soft);
+      align-items: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: var(--panel-3);
+      color: var(--text);
+      transition: 0.2s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: rgba(255, 255, 255, 0.12); }
+    .btn.primary { background: var(--blue); color: white; box-shadow: 0 12px 30px rgba(38, 132, 255, 0.28); }
+    .btn.primary:hover { background: var(--blue-2); }
+    .btn.danger { background: rgba(255, 94, 117, 0.12); color: #ff9aaa; border-color: rgba(255, 94, 117, 0.28); }
+    .btn.ghost { background: transparent; border-color: var(--border); color: var(--muted); }
+    .btn.small { min-height: 34px; padding: 8px 10px; border-radius: 10px; font-size: 13px; }
+
+    .field, .select, .textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(7, 17, 31, 0.72);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    .textarea { min-height: 92px; resize: vertical; }
+    .field:focus, .select:focus, .textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+    .field::placeholder { color: var(--muted-2); }
+    label { display: grid; gap: 8px; color: var(--muted); font-size: 13px; }
+    label strong { color: #cfdef5; font-size: 13px; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    th, td {
+      text-align: left;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: middle;
+      font-size: 14px;
+    }
+    th {
+      color: #9eb3d0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(7, 17, 31, 0.35);
+    }
+    tr:hover td { background: rgba(38, 132, 255, 0.035); }
+    td .muted { color: var(--muted); font-size: 13px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+    .badge.black { color: #ff9cab; background: var(--red-soft); border: 1px solid rgba(255, 94, 117, 0.22); }
+    .badge.white { color: #b9d8ff; background: var(--blue-soft); border: 1px solid rgba(38, 132, 255, 0.26); }
+    .badge.active-status { color: #94f2c8; background: var(--green-soft); border: 1px solid rgba(61, 220, 151, 0.23); }
+    .badge.planned { color: #b9d8ff; background: var(--blue-soft); border: 1px solid rgba(38, 132, 255, 0.24); }
+    .badge.expired { color: #ffd989; background: var(--yellow-soft); border: 1px solid rgba(246, 200, 95, 0.23); }
+    .badge.archived { color: #b2bfd4; background: rgba(143, 164, 194, 0.11); border: 1px solid rgba(143, 164, 194, 0.2); }
+    .badge.error { color: #ffb2bf; background: var(--red-soft); border: 1px solid rgba(255, 94, 117, 0.24); }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .empty-state {
+      padding: 42px 20px;
+      text-align: center;
+      color: var(--muted);
+      display: none;
+    }
+    .empty-state.visible { display: block; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-soft);
+      background: rgba(16, 29, 48, 0.72);
+    }
+    .metric-value { font-size: 28px; font-weight: 860; letter-spacing: -0.03em; }
+    .metric-label { color: var(--muted); font-size: 13px; margin-top: 5px; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s ease;
+    }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 50;
+      width: min(760px, 100vw);
+      height: 100vh;
+      transform: translateX(105%);
+      transition: transform 0.25s ease;
+      background: #0b1728;
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+    }
+    .drawer-title { margin: 0; font-size: 22px; }
+    .drawer-body { padding: 20px; overflow: auto; display: grid; gap: 22px; }
+    .drawer-foot {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: rgba(7, 17, 31, 0.8);
+    }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .form-grid .span-2 { grid-column: 1 / -1; }
+
+    .choice-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .choice-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(7, 17, 31, 0.42);
+      cursor: pointer;
+      transition: 0.2s ease;
+      display: grid;
+      gap: 7px;
+    }
+    .choice-card:hover, .choice-card.active { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+    .choice-card strong { color: var(--text); }
+    .choice-card span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .hint {
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: var(--blue-soft);
+      color: #cfe4ff;
+      border: 1px solid rgba(38, 132, 255, 0.26);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .error-box {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--red-soft);
+      color: #ffb8c3;
+      border: 1px solid rgba(255, 94, 117, 0.26);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .error-box.visible { display: block; }
+
+    .section-card {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: rgba(16, 29, 48, 0.66);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+    .section-card h3 { margin: 0; font-size: 16px; }
+
+    .checkbox-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(7, 17, 31, 0.45);
+      border: 1px solid var(--border-soft);
+      color: #d8e6fb;
+      font-size: 13px;
+    }
+    .check-row input { accent-color: var(--blue); }
+
+    .number-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 42px;
+    }
+    .number-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(7, 17, 31, 0.6);
+      color: #dceaff;
+      font-weight: 760;
+      letter-spacing: 0.03em;
+    }
+    .number-pill button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 2px;
+      font-weight: 900;
+    }
+
+    .upload-zone {
+      border: 1px dashed rgba(38, 132, 255, 0.45);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(38, 132, 255, 0.055);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .upload-result {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .result-chip {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(7, 17, 31, 0.5);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .result-chip strong { display: block; color: var(--text); font-size: 18px; margin-bottom: 2px; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.58);
+      padding: 20px;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(1000px, 96vw);
+      max-height: 90vh;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: #0b1728;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    .modal-head, .modal-foot { padding: 18px 20px; border-bottom: 1px solid var(--border-soft); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .modal-foot { border-top: 1px solid var(--border-soft); border-bottom: 0; justify-content: flex-end; }
+    .modal-body { padding: 20px; overflow: auto; }
+
+    .trigger-layout {
+      display: grid;
+      grid-template-columns: 310px 1fr;
+      gap: 18px;
+    }
+    .info-stack { display: grid; gap: 12px; }
+    .info-row { padding: 12px; border-radius: 14px; background: rgba(16, 29, 48, 0.72); border: 1px solid var(--border-soft); }
+    .info-row span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+    .info-row strong { color: var(--text); }
+
+    .access-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 18px; }
+    .toggle {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--blue);
+      border: 0;
+      flex: 0 0 auto;
+    }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .map-preview {
+      min-height: 220px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(90deg, rgba(38,132,255,0.08) 1px, transparent 1px),
+        linear-gradient(rgba(38,132,255,0.08) 1px, transparent 1px),
+        radial-gradient(circle at 26% 40%, rgba(38, 132, 255, 0.28), transparent 10rem),
+        radial-gradient(circle at 70% 62%, rgba(61, 220, 151, 0.15), transparent 9rem),
+        #081424;
+      background-size: 32px 32px, 32px 32px, auto, auto, auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .camera-dot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 7px rgba(38, 132, 255, 0.16), 0 0 24px rgba(38,132,255,0.7);
+    }
+    .camera-dot:nth-child(1) { left: 22%; top: 34%; }
+    .camera-dot:nth-child(2) { left: 52%; top: 55%; }
+    .camera-dot:nth-child(3) { left: 73%; top: 28%; }
+    .selected-area {
+      position: absolute;
+      left: 38%;
+      top: 26%;
+      width: 250px;
+      height: 112px;
+      border: 2px solid var(--blue);
+      background: rgba(38,132,255,0.12);
+      border-radius: 24px 60px 28px 46px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 90;
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: #10213a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: 0.2s ease;
+    }
+    .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 1120px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .summary-grid, .access-grid, .trigger-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .topbar { align-items: flex-start; flex-direction: column; padding: 14px; }
+      .main-menu { width: 100%; justify-content: flex-start; overflow-x: auto; }
+      .workspace { width: min(100vw - 24px, 1480px); margin-top: 18px; }
+      .page-header { align-items: flex-start; flex-direction: column; }
+      .toolbar, .form-grid, .choice-row, .checkbox-list, .upload-result { grid-template-columns: 1fr; }
+      .tabs { max-width: 100%; overflow-x: auto; }
+      .drawer { width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">NV</div>
+        <div>
+          <div class="brand-title">NetVision</div>
+          <div class="brand-subtitle">Платформа распознавания номеров</div>
+        </div>
+      </div>
+      <nav class="main-menu" aria-label="Главное меню">
+        <button type="button"><span class="icon">📷</span>Камеры</button>
+        <button type="button"><span class="icon">⚡</span>События</button>
+        <button type="button" class="active"><span class="icon">👤</span>Личный кабинет</button>
+      </nav>
+      <div class="user-chip"><span class="avatar">АК</span><span>Администратор</span></div>
+    </header>
+
+    <main class="workspace">
+      <section class="page-header">
+        <div>
+          <div class="eyebrow">Личный кабинет</div>
+          <h1>Черные и белые списки номеров</h1>
+          <p class="lead">Настройте персональные списки номеров для будущего поиска по выбранным камерам и периоду действия.</p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Вкладки личного кабинета">
+          <button class="tab-btn active" type="button" data-tab="lists">Черные/белые списки</button>
+          <button class="tab-btn" type="button" data-tab="access">Права доступа</button>
+          <button class="tab-btn" type="button" data-tab="audit">Аудит</button>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <div class="metric"><div class="metric-value">18</div><div class="metric-label">Всего списков</div></div>
+        <div class="metric"><div class="metric-value">12</div><div class="metric-label">Активные</div></div>
+        <div class="metric"><div class="metric-value">3 482</div><div class="metric-label">Номера в списках</div></div>
+        <div class="metric"><div class="metric-value">164</div><div class="metric-label">Сработки за период</div></div>
+      </section>
+
+      <section class="tab-panel active" id="tab-lists">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Реестр списков</h2>
+              <div class="panel-caption">Личные черные и белые списки с настройками периода, камер и номеров.</div>
+            </div>
+            <button class="btn primary" type="button" id="openCreateBtn">+ Создать список</button>
+          </div>
+          <div class="toolbar">
+            <button class="btn primary" type="button" id="openCreateBtn2">Создать список</button>
+            <input class="field" type="search" id="searchInput" placeholder="Поиск по названию или номеру" />
+            <select class="select" id="typeFilter" aria-label="Фильтр по типу">
+              <option value="all">Все типы</option>
+              <option value="Черный">Черный</option>
+              <option value="Белый">Белый</option>
+            </select>
+            <select class="select" id="statusFilter" aria-label="Фильтр по статусу">
+              <option value="all">Все статусы</option>
+              <option value="Активен">Активен</option>
+              <option value="Запланирован">Запланирован</option>
+              <option value="Истек">Истек</option>
+              <option value="Архивирован">Архивирован</option>
+            </select>
+            <select class="select" id="cameraFilter" aria-label="Фильтр по камерам">
+              <option value="all">Все камеры</option>
+              <option value="Офис">Офис</option>
+              <option value="Склад">Склад</option>
+              <option value="Все камеры">Без ограничений</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Название</th>
+                  <th>Тип списка</th>
+                  <th>Статус</th>
+                  <th>Номера</th>
+                  <th>Период действия</th>
+                  <th>Камеры</th>
+                  <th>Создан</th>
+                  <th>Изменен</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="listsTable"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="emptyState">Списки не найдены. Измените фильтры или создайте новый список.</div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-access">
+        <div class="access-grid">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Право доступа</h2>
+                <div class="panel-caption">Управление возможностью работать с черными и белыми списками.</div>
+              </div>
+            </div>
+            <div class="drawer-body" style="overflow: visible;">
+              <div class="section-card">
+                <div style="display:flex; justify-content:space-between; gap:16px; align-items:center;">
+                  <div>
+                    <h3>Работа с черными и белыми списками</h3>
+                    <p class="panel-caption">Пользователь с этим правом видит раздел, создает и редактирует личные списки.</p>
+                  </div>
+                  <button class="toggle" type="button" aria-label="Право включено"></button>
+                </div>
+                <div class="hint">Права на камеры проверяются отдельно: пользователь может выбрать только доступные ему камеры.</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">Пользователи и роли</h2>
+                <div class="panel-caption">Моковые данные для демонстрации назначения прав.</div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Пользователь</th><th>Роль</th><th>Право</th><th>Камеры</th></tr></thead>
+                <tbody>
+                  <tr><td>Анна К.</td><td>Администратор</td><td><span class="badge active-status">Включено</span></td><td>Все камеры</td></tr>
+                  <tr><td>Игорь П.</td><td>Оператор офиса</td><td><span class="badge active-status">Включено</span></td><td>Офис</td></tr>
+                  <tr><td>Мария С.</td><td>Наблюдатель</td><td><span class="badge archived">Отключено</span></td><td>Склад</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-audit">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Аудит действий</h2>
+              <div class="panel-caption">История операций со списками, номерами, камерами и статусами.</div>
+            </div>
+          </div>
+          <div class="toolbar" style="grid-template-columns: repeat(4, minmax(160px, 1fr));">
+            <select class="select"><option>Все пользователи</option><option>Анна К.</option><option>Игорь П.</option></select>
+            <select class="select"><option>Все списки</option><option>Контроль должников</option><option>Разрешенный транспорт офиса</option></select>
+            <select class="select"><option>Все действия</option><option>Создание списка</option><option>Добавление номера</option><option>Архивирование</option></select>
+            <input class="field" type="date" value="2026-06-05" />
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Дата и время</th><th>Пользователь</th><th>Действие</th><th>Объект</th><th>Старое значение</th><th>Новое значение</th></tr></thead>
+              <tbody>
+                <tr><td>05.06.2026 10:42</td><td>Анна К.</td><td>Создание списка</td><td>Контроль должников</td><td>-</td><td>Активен</td></tr>
+                <tr><td>05.06.2026 10:48</td><td>Анна К.</td><td>Добавление номера</td><td>А123ВС77</td><td>-</td><td>Добавлен</td></tr>
+                <tr><td>05.06.2026 11:03</td><td>Игорь П.</td><td>Пакетный импорт</td><td>Разрешенный транспорт офиса</td><td>120 номеров</td><td>158 номеров</td></tr>
+                <tr><td>05.06.2026 11:18</td><td>Анна К.</td><td>Архивирование списка</td><td>Старый список подрядчиков</td><td>Истек</td><td>Архивирован</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="listDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <h2 class="drawer-title" id="drawerTitle">Создать список</h2>
+        <div class="panel-caption">Заполните обязательные поля, номера и область действия списка.</div>
+      </div>
+      <button class="btn ghost small" type="button" id="closeDrawerBtn">Закрыть</button>
+    </div>
+    <div class="drawer-body">
+      <div class="error-box" id="formErrors"></div>
+      <div class="form-grid">
+        <label class="span-2"><strong>Название списка</strong><input class="field" id="listName" placeholder="Например, Контроль должников" /></label>
+        <div class="span-2">
+          <label><strong>Тип списка</strong></label>
+          <div class="choice-row" style="margin-top:8px;">
+            <div class="choice-card active" data-list-type="Черный"><strong>Черный список</strong><span>Сработка создается, если номер есть в списке.</span></div>
+            <div class="choice-card" data-list-type="Белый"><strong>Белый список</strong><span>Сработка создается, если номера нет в списке.</span></div>
+          </div>
+        </div>
+        <div class="span-2 hint" id="typeHint">Сработка создается, если распознанный номер есть в списке.</div>
+        <label><strong>Дата и время начала</strong><input class="field" id="dateStart" type="datetime-local" value="2026-06-06T09:00" /></label>
+        <label><strong>Дата и время окончания</strong><input class="field" id="dateEnd" type="datetime-local" value="2026-07-06T18:00" /></label>
+        <label class="check-row span-2"><input type="checkbox" id="unlimitedCheck" /> Бессрочно</label>
+      </div>
+
+      <div class="section-card">
+        <h3>Камеры</h3>
+        <label class="check-row"><input type="checkbox" id="allCamerasCheck" /> Без ограничений по камерам</label>
+        <div class="checkbox-list" id="cameraChecks">
+          <label class="check-row"><input type="checkbox" value="КПП Север" checked /> КПП Север</label>
+          <label class="check-row"><input type="checkbox" value="Офис: въезд" /> Офис: въезд</label>
+          <label class="check-row"><input type="checkbox" value="Склад: ворота 2" /> Склад: ворота 2</label>
+          <label class="check-row"><input type="checkbox" value="Парковка B" /> Парковка B</label>
+        </div>
+        <div class="upload-zone">
+          <div><strong>Выбор камер на карте</strong><div class="panel-caption">Нарисуйте область и создайте перечень камер.</div></div>
+          <button class="btn" type="button" id="openMapBtn">Выбрать на карте</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Номера</h3>
+        <div style="display:grid; grid-template-columns:1fr auto; gap:10px;">
+          <input class="field" id="numberInput" placeholder="Введите номер, например A123BC77" />
+          <button class="btn primary" id="addNumberBtn" type="button">Добавить номер</button>
+        </div>
+        <div class="number-list" id="numberList"></div>
+      </div>
+
+      <div class="section-card">
+        <h3>Пакетная загрузка</h3>
+        <div class="upload-zone">
+          <div><strong>CSV/XLSX с обязательной колонкой номера</strong><div class="panel-caption">Файл проверяется на тип, размер, дубликаты и некорректные строки.</div></div>
+          <button class="btn" type="button" id="uploadMockBtn">Загрузить файл</button>
+        </div>
+        <div class="upload-result" id="uploadResult" style="display:none;">
+          <div class="result-chip"><strong>38</strong>добавлено</div>
+          <div class="result-chip"><strong>4</strong>отклонено</div>
+          <div class="result-chip"><strong>7</strong>дубликаты</div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="btn ghost" type="button" id="cancelDrawerBtn">Отмена</button>
+      <button class="btn primary" type="button" id="saveListBtn">Сохранить</button>
+    </div>
+  </aside>
+
+  <div class="modal" id="triggerModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 class="drawer-title" id="triggerTitle">Сработки по списку</h2>
+          <div class="panel-caption">Стандартное представление сработок с привязкой к списку.</div>
+        </div>
+        <button class="btn ghost small" id="closeTriggerBtn" type="button">Закрыть</button>
+      </div>
+      <div class="modal-body">
+        <div class="trigger-layout">
+          <div class="info-stack">
+            <div class="info-row"><span>Название списка</span><strong id="triggerListName">Контроль должников</strong></div>
+            <div class="info-row"><span>Тип списка</span><strong id="triggerListType">Черный</strong></div>
+            <div class="info-row"><span>Период работы</span><strong id="triggerPeriod">06.06.2026 - 06.07.2026</strong></div>
+            <button class="btn primary" id="backToListBtn" type="button">Вернуться к списку</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Номер</th><th>Камера</th><th>Дата и время</th><th>Тип списка</th><th>Статус обработки</th></tr></thead>
+              <tbody id="triggerTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="closeTriggerBtn2" type="button">Закрыть</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="mapModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 class="drawer-title">Выбор камер на карте</h2>
+          <div class="panel-caption">Демонстрация выбора камер по области.</div>
+        </div>
+        <button class="btn ghost small" id="closeMapBtn" type="button">Закрыть</button>
+      </div>
+      <div class="modal-body">
+        <div class="map-preview">
+          <span class="camera-dot"></span><span class="camera-dot"></span><span class="camera-dot"></span><span class="selected-area"></span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="cancelMapBtn" type="button">Отмена</button>
+        <button class="btn primary" id="applyMapBtn" type="button">Создать камеры</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Сохранено</div>
+
+  <script>
+    const lists = [
+      {
+        name: "Контроль должников",
+        type: "Черный",
+        status: "Активен",
+        numbers: ["A123BC77", "M778OO197", "K042MP50"],
+        period: "06.06.2026 - 06.07.2026",
+        cameras: "КПП Север, Офис: въезд",
+        created: "05.06.2026",
+        updated: "05.06.2026"
+      },
+      {
+        name: "Разрешенный транспорт офиса",
+        type: "Белый",
+        status: "Запланирован",
+        numbers: ["E500KX777", "X014AM97", "B777OP99"],
+        period: "10.06.2026 - бессрочно",
+        cameras: "Офис",
+        created: "04.06.2026",
+        updated: "05.06.2026"
+      },
+      {
+        name: "Старый список подрядчиков",
+        type: "Белый",
+        status: "Архивирован",
+        numbers: ["T202EC78", "C919CC199"],
+        period: "01.02.2026 - 01.05.2026",
+        cameras: "Склад",
+        created: "01.02.2026",
+        updated: "01.05.2026"
+      },
+      {
+        name: "Ночной контроль парковки",
+        type: "Черный",
+        status: "Истек",
+        numbers: ["AA7788AA", "ZX4219TR"],
+        period: "01.05.2026 - 31.05.2026",
+        cameras: "Все камеры",
+        created: "28.04.2026",
+        updated: "31.05.2026"
+      }
+    ];
+
+    const triggers = {
+      "Контроль должников": [
+        ["A123BC77", "КПП Север", "05.06.2026 10:42", "Черный", "Обработано"],
+        ["M778OO197", "Офис: въезд", "05.06.2026 11:08", "Черный", "Уведомление отправлено"],
+        ["K042MP50", "КПП Север", "05.06.2026 11:36", "Черный", "Обработано"]
+      ],
+      "Разрешенный транспорт офиса": [
+        ["P901TM77", "Офис: въезд", "10.06.2026 09:14", "Белый", "Обработано"],
+        ["H441AP777", "Офис: выезд", "10.06.2026 10:02", "Белый", "Уведомление отправлено"]
+      ],
+      "Старый список подрядчиков": [
+        ["Z452ZZ90", "Склад: ворота 2", "20.04.2026 16:31", "Белый", "Архив"]
+      ],
+      "Ночной контроль парковки": [
+        ["AA7788AA", "Парковка B", "12.05.2026 02:18", "Черный", "Архив"]
+      ]
+    };
+
+    const state = {
+      selectedType: "Черный",
+      drawerMode: "create",
+      editingList: null,
+      numbers: ["A123BC77", "M778OO197"]
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function statusClass(status) {
+      return {
+        "Активен": "active-status",
+        "Запланирован": "planned",
+        "Истек": "expired",
+        "Архивирован": "archived"
+      }[status] || "archived";
+    }
+
+    function renderLists() {
+      const query = $("#searchInput").value.trim().toLowerCase();
+      const type = $("#typeFilter").value;
+      const status = $("#statusFilter").value;
+      const camera = $("#cameraFilter").value;
+      const filtered = lists
+        .map((item, sourceIndex) => ({ item, sourceIndex }))
+        .filter(({ item }) => {
+          const haystack = [item.name, item.type, item.status, item.cameras, ...item.numbers].join(" ").toLowerCase();
+          return (!query || haystack.includes(query))
+            && (type === "all" || item.type === type)
+            && (status === "all" || item.status === status)
+            && (camera === "all" || item.cameras.includes(camera));
+        });
+
+      $("#listsTable").innerHTML = filtered.map(({ item, sourceIndex }) => `
+        <tr>
+          <td><strong>${item.name}</strong><div class="muted">${item.numbers.slice(0, 2).join(", ")}${item.numbers.length > 2 ? "..." : ""}</div></td>
+          <td><span class="badge ${item.type === "Черный" ? "black" : "white"}">${item.type}</span></td>
+          <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td>
+          <td>${item.numbers.length}</td>
+          <td>${item.period}</td>
+          <td>${item.cameras}</td>
+          <td>${item.created}</td>
+          <td>${item.updated}</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn small" data-action="view" data-index="${sourceIndex}">Просмотр</button>
+              <button class="btn small" data-action="edit" data-index="${sourceIndex}">Редактировать</button>
+              <button class="btn small" data-action="archive" data-index="${sourceIndex}">Архивировать</button>
+              <button class="btn small danger" data-action="delete" data-index="${sourceIndex}">Удалить</button>
+            </div>
+          </td>
+        </tr>
+      `).join("");
+
+      $("#emptyState").classList.toggle("visible", filtered.length === 0);
+    }
+
+    function setTab(tab) {
+      $$(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+      $$(".tab-panel").forEach(panel => panel.classList.toggle("active", panel.id === `tab-${tab}`));
+    }
+
+    function openDrawer(mode = "create", item = null) {
+      state.drawerMode = mode;
+      state.editingList = item;
+      $("#drawerTitle").textContent = mode === "edit" ? "Редактировать список" : "Создать список";
+      $("#formErrors").classList.remove("visible");
+      if (item) {
+        $("#listName").value = item.name;
+        state.selectedType = item.type;
+        state.numbers = [...item.numbers];
+      } else {
+        $("#listName").value = "";
+        state.selectedType = "Черный";
+        state.numbers = ["A123BC77", "M778OO197"];
+      }
+      syncTypeCards();
+      renderNumbers();
+      $("#drawerBackdrop").classList.add("open");
+      $("#listDrawer").classList.add("open");
+      $("#listDrawer").setAttribute("aria-hidden", "false");
+    }
+
+    function closeDrawer() {
+      $("#drawerBackdrop").classList.remove("open");
+      $("#listDrawer").classList.remove("open");
+      $("#listDrawer").setAttribute("aria-hidden", "true");
+    }
+
+    function syncTypeCards() {
+      $$(".choice-card").forEach(card => card.classList.toggle("active", card.dataset.listType === state.selectedType));
+      $("#typeHint").textContent = state.selectedType === "Черный"
+        ? "Сработка создается, если распознанный номер есть в списке."
+        : "Сработка создается, если распознанного номера нет в списке.";
+    }
+
+    function normalizeNumber(value) {
+      return value.trim().toUpperCase().replace(/\s+/g, "");
+    }
+
+    function renderNumbers() {
+      $("#numberList").innerHTML = state.numbers.map(num => `
+        <span class="number-pill">${num}<button type="button" data-remove-number="${num}" aria-label="Удалить номер ${num}">×</button></span>
+      `).join("");
+    }
+
+    function addNumber() {
+      const raw = $("#numberInput").value;
+      const normalized = normalizeNumber(raw);
+      const errors = [];
+      if (!normalized) errors.push("Номер не должен быть пустым.");
+      if (normalized.length > 16) errors.push("Номер не должен превышать допустимую длину.");
+      if (/[^A-ZА-ЯЁ0-9-]/i.test(normalized)) errors.push("Номер содержит запрещенные символы.");
+      if (state.numbers.includes(normalized)) errors.push("Такой номер уже есть в списке.");
+      if (errors.length) return showFormErrors(errors);
+      state.numbers.push(normalized);
+      $("#numberInput").value = "";
+      $("#formErrors").classList.remove("visible");
+      renderNumbers();
+      showToast("Номер добавлен");
+    }
+
+    function showFormErrors(errors) {
+      const box = $("#formErrors");
+      box.innerHTML = errors.map(error => `• ${error}`).join("<br>");
+      box.classList.add("visible");
+    }
+
+    function saveList() {
+      const errors = [];
+      const name = $("#listName").value.trim();
+      const start = $("#dateStart").value;
+      const end = $("#dateEnd").value;
+      const unlimited = $("#unlimitedCheck").checked;
+      const allCameras = $("#allCamerasCheck").checked;
+      const selectedCameras = $$("#cameraChecks input:checked");
+
+      if (!name) errors.push("Заполните название списка.");
+      if (!state.selectedType) errors.push("Выберите тип списка.");
+      if (!start) errors.push("Укажите дату и время начала.");
+      if (!unlimited && !end) errors.push("Укажите дату и время окончания или выберите бессрочный режим.");
+      if (!unlimited && start && end && new Date(end) <= new Date(start)) errors.push("Дата окончания должна быть позже даты начала.");
+      if (!state.numbers.length) errors.push("Добавьте хотя бы один номер.");
+      if (!allCameras && selectedCameras.length === 0) errors.push("Выберите камеру или включите режим без ограничений по камерам.");
+      if (errors.length) return showFormErrors(errors);
+
+      const newItem = {
+        name,
+        type: state.selectedType,
+        status: new Date(start) > new Date() ? "Запланирован" : "Активен",
+        numbers: [...state.numbers],
+        period: unlimited ? `${formatDate(start)} - бессрочно` : `${formatDate(start)} - ${formatDate(end)}`,
+        cameras: allCameras ? "Все камеры" : selectedCameras.map(input => input.value).join(", "),
+        created: formatDate(new Date().toISOString()),
+        updated: formatDate(new Date().toISOString())
+      };
+
+      if (state.drawerMode === "edit" && state.editingList) {
+        Object.assign(state.editingList, newItem, { created: state.editingList.created });
+      } else {
+        lists.unshift(newItem);
+      }
+      renderLists();
+      closeDrawer();
+      showToast("Список сохранен");
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("ru-RU");
+    }
+
+    function openTriggers(item) {
+      $("#triggerListName").textContent = item.name;
+      $("#triggerListType").textContent = item.type;
+      $("#triggerPeriod").textContent = item.period;
+      $("#triggerTitle").textContent = `Сработки: ${item.name}`;
+      const rows = triggers[item.name] || [[item.numbers[0] || "A000AA00", item.cameras.split(",")[0], "05.06.2026 12:10", item.type, "Обработано"]];
+      $("#triggerTable").innerHTML = rows.map(row => `
+        <tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td><span class="badge ${row[3] === "Черный" ? "black" : "white"}">${row[3]}</span></td><td>${row[4]}</td></tr>
+      `).join("");
+      $("#triggerModal").classList.add("open");
+    }
+
+    function closeTriggers() { $("#triggerModal").classList.remove("open"); }
+    function openMap() { $("#mapModal").classList.add("open"); }
+    function closeMap() { $("#mapModal").classList.remove("open"); }
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("visible"), 2200);
+    }
+
+    $$(".tab-btn").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+    ["#searchInput", "#typeFilter", "#statusFilter", "#cameraFilter"].forEach(selector => $(selector).addEventListener("input", renderLists));
+    $("#openCreateBtn").addEventListener("click", () => openDrawer("create"));
+    $("#openCreateBtn2").addEventListener("click", () => openDrawer("create"));
+    $("#closeDrawerBtn").addEventListener("click", closeDrawer);
+    $("#cancelDrawerBtn").addEventListener("click", closeDrawer);
+    $("#drawerBackdrop").addEventListener("click", closeDrawer);
+    $("#saveListBtn").addEventListener("click", saveList);
+    $("#addNumberBtn").addEventListener("click", addNumber);
+    $("#numberInput").addEventListener("keydown", (event) => { if (event.key === "Enter") addNumber(); });
+    $("#uploadMockBtn").addEventListener("click", () => {
+      $("#uploadResult").style.display = "grid";
+      ["H441AP777", "P901TM77", "E500KX777"].forEach(num => { if (!state.numbers.includes(num)) state.numbers.push(num); });
+      renderNumbers();
+      showToast("Файл обработан");
+    });
+    $("#openMapBtn").addEventListener("click", openMap);
+    $("#closeMapBtn").addEventListener("click", closeMap);
+    $("#cancelMapBtn").addEventListener("click", closeMap);
+    $("#applyMapBtn").addEventListener("click", () => { closeMap(); showToast("Камеры из области выбраны"); });
+    $("#closeTriggerBtn").addEventListener("click", closeTriggers);
+    $("#closeTriggerBtn2").addEventListener("click", closeTriggers);
+    $("#backToListBtn").addEventListener("click", closeTriggers);
+    $("#unlimitedCheck").addEventListener("change", (event) => { $("#dateEnd").disabled = event.target.checked; });
+    $("#allCamerasCheck").addEventListener("change", (event) => {
+      $$("#cameraChecks input").forEach(input => input.disabled = event.target.checked);
+    });
+
+    $$(".choice-card").forEach(card => card.addEventListener("click", () => {
+      state.selectedType = card.dataset.listType;
+      syncTypeCards();
+    }));
+
+    $("#numberList").addEventListener("click", (event) => {
+      const num = event.target.dataset.removeNumber;
+      if (!num) return;
+      state.numbers = state.numbers.filter(item => item !== num);
+      renderNumbers();
+      showToast("Номер удален");
+    });
+
+    $("#listsTable").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const item = lists[Number(button.dataset.index)];
+      const action = button.dataset.action;
+      if (action === "view") openTriggers(item);
+      if (action === "edit") openDrawer("edit", item);
+      if (action === "archive") { item.status = "Архивирован"; renderLists(); showToast("Список архивирован"); }
+      if (action === "delete") { lists.splice(Number(button.dataset.index), 1); renderLists(); showToast("Список удален"); }
+    });
+
+    renderLists();
+    renderNumbers();
+  </script>
+</body>
+</html>
