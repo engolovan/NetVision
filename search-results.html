@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Результаты поиска ТС</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0c111d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+      margin: 0;
+    }
+
+    .app-container {
+      max-width: 1600px;
+      width: 100%;
+      height: 95vh;
+      display: flex;
+      gap: 16px;
+    }
+
+    .map-wrapper {
+      flex: 1;
+      background: #131a2a;
+      border-radius: 24px;
+      border: 1px solid #253040;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+    }
+
+    #map { width: 100%; height: 100%; z-index: 1; }
+
+    .search-badges {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: calc(100% - 32px);
+    }
+
+    .search-badge {
+      background: #1e2a3fe8;
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 8px 14px;
+      border: 1px solid #2e3f58;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #cbd9f0;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .search-badge:hover {
+      background: #253a58;
+      border-color: #3b82f6;
+    }
+    .search-badge.active {
+      border-color: #3b82f6;
+      background: #1e2f4a;
+    }
+    .badge-status {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .badge-status.done {
+      background: #1a3a2a;
+      color: #22c55e;
+    }
+    .badge-status.progress {
+      background: #3a3510;
+      color: #f59e0b;
+      animation: spin 2s linear infinite;
+    }
+    .badge-status.error {
+      background: #3a1f1f;
+      color: #ef4444;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .badge-count {
+      min-width: 24px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #263a57;
+      font-weight: 600;
+      color: #ecf2ff;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .side-panel {
+      width: 430px;
+      background: #131a2a;
+      border-radius: 24px;
+      border: 1px solid #253040;
+      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .search-name-header {
+      padding: 16px 20px 0;
+      flex-shrink: 0;
+    }
+    .search-name-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .search-name {
+      font-weight: 600;
+      font-size: 18px;
+      color: #eef4ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      line-height: 1.3;
+    }
+    .search-name i { color: #3b82f6; font-size: 16px; }
+    .search-name-sub {
+      font-size: 12px;
+      color: #7c95b5;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .search-name-sub .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .search-name-sub .dot.done { background: #22c55e; }
+
+    .filter-toggle {
+      background: #1e2f4a;
+      border: 1px solid #3b82f6;
+      color: #ecf2ff;
+      border-radius: 12px;
+      padding: 9px 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .filter-toggle:hover { background: #243b60; }
+    .filter-toggle .filter-count {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .filters-panel {
+      display: none;
+      margin-top: 14px;
+      padding: 14px;
+      background: #0f1728;
+      border: 1px solid #253040;
+      border-radius: 16px;
+    }
+    .filters-panel.active { display: block; }
+    .filters-panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: #eef4ff;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .filter-enable {
+      color: #90a9d0;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .filter-field.full { grid-column: 1 / -1; }
+    .filter-field label {
+      color: #7c95b5;
+      font-size: 11px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .filter-field input,
+    .filter-field select {
+      width: 100%;
+      background: #1e2a3f;
+      border: 1.5px solid #2e3f58;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #ecf2ff;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+    }
+    .filter-field input:focus,
+    .filter-field select:focus { border-color: #3b82f6; }
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .filter-action {
+      flex: 1;
+      border-radius: 10px;
+      padding: 9px 10px;
+      border: 1px solid #2e3f58;
+      background: transparent;
+      color: #cbd9f0;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .filter-action.primary {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: white;
+      font-weight: 600;
+    }
+
+    .panel-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 16px 14px 12px;
+      flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1;
+      padding: 9px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 12px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #90a9d0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: 0.2s;
+      white-space: nowrap;
+      font-family: 'Inter', sans-serif;
+    }
+    .panel-tab i { font-size: 14px; }
+    .panel-tab.active {
+      background: #1e2f4a;
+      border-color: #3b82f6;
+      color: white;
+    }
+    .panel-tab:hover:not(.active) {
+      background: #1e2b40;
+      color: #cbd9f0;
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 16px 16px;
+    }
+
+    .day-group { margin-bottom: 20px; }
+    .day-label {
+      font-weight: 600;
+      font-size: 13px;
+      color: #90a9d0;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .day-label i { color: #5f9eff; font-size: 14px; }
+
+    .event-card {
+      background: #1a2338;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border: 1px solid #2e3f58;
+      cursor: pointer;
+      transition: 0.15s;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .event-card:hover { background: #1f2e46; border-color: #3b82f6; }
+    .event-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #1e2b40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #5f9eff;
+      flex-shrink: 0;
+    }
+    .event-info { flex: 1; min-width: 0; }
+    .event-type { font-weight: 600; font-size: 13px; color: #ecf2ff; margin-bottom: 2px; }
+    .event-location { font-size: 12px; color: #7c95b5; margin-bottom: 4px; }
+    .event-time {
+      font-size: 12px;
+      color: #5f9eff;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .routes-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #7c95b5;
+      font-size: 12px;
+      margin-bottom: 10px;
+      padding: 2px 2px 0;
+    }
+    .route-group-card {
+      background: #141e31;
+      border: 1px solid #2e3f58;
+      border-radius: 16px;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .route-group-card.active { border-color: #3b82f6; }
+    .route-group-toggle {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 13px 14px;
+      color: #ecf2ff;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+    }
+    .route-group-toggle:hover { background: #1a2538; }
+    .route-index {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: #1e2f4a;
+      color: #5f9eff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .route-summary { flex: 1; min-width: 0; }
+    .route-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+    .route-title span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .route-stats {
+      color: #7c95b5;
+      font-size: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .route-chevron {
+      color: #7c95b5;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .route-group-card.active .route-chevron { transform: rotate(180deg); }
+    .route-points {
+      display: none;
+      padding: 0 14px 12px 54px;
+    }
+    .route-group-card.active .route-points { display: block; }
+    .route-point {
+      position: relative;
+      padding: 0 0 12px 18px;
+      border-left: 1px dashed #365273;
+    }
+    .route-point:last-child {
+      border-left-color: transparent;
+      padding-bottom: 0;
+    }
+    .route-point::before {
+      content: "";
+      position: absolute;
+      left: -5px;
+      top: 1px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #3b82f6;
+      box-shadow: 0 0 0 4px #13233a;
+    }
+    .route-point-title { color: #ecf2ff; font-size: 12px; font-weight: 600; }
+    .route-point-sub { color: #7c95b5; font-size: 12px; margin-top: 2px; }
+    .route-point-time { color: #5f9eff; font-size: 12px; margin-top: 2px; }
+
+    .panel-content::-webkit-scrollbar { width: 4px; }
+    .panel-content::-webkit-scrollbar-thumb { background: #2e405b; border-radius: 4px; }
+
+    @media (max-width: 900px) {
+      .app-container { flex-direction: column; height: auto; }
+      .side-panel { width: 100%; max-height: none; }
+      .map-wrapper { min-height: 400px; }
+      .filter-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <div class="map-wrapper" id="mapWrapper">
+    <div id="map"></div>
+    <div class="search-badges" id="searchBadges">
+      <div class="search-badge active">
+        <span class="badge-status done"><i class="fas fa-check"></i></span>
+        <span>Поиск ТС_10.04.26_11.11</span>
+        <span class="badge-count">47</span>
+      </div>
+      <div class="search-badge">
+        <span class="badge-status progress"><i class="fas fa-spinner fa-spin"></i></span>
+        <span>Поиск по ул. Ленина</span>
+        <span class="badge-count">-</span>
+      </div>
+      <div class="search-badge">
+        <span class="badge-status error"><i class="fas fa-exclamation"></i></span>
+        <span>Ночной поиск ТС</span>
+        <span class="badge-count">-</span>
+      </div>
+      <div class="search-badge">
+        <span class="badge-status done"><i class="fas fa-check"></i></span>
+        <span>Поиск по МКАД</span>
+        <span class="badge-count">12</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="search-name-header">
+      <div class="search-name-row">
+        <div>
+          <div class="search-name">
+            <i class="fas fa-search"></i> Поиск ТС_10.04.26_11.11
+          </div>
+          <div class="search-name-sub">
+            <span class="dot done"></span> Завершен
+            <span style="margin-left: 8px;">•</span>
+            <span>47 проездов</span>
+            <span style="margin-left: 8px;">•</span>
+            <span>3 маршрута</span>
+          </div>
+        </div>
+        <button class="filter-toggle" id="filterToggle" type="button" onclick="toggleFilters()">
+          <i class="fas fa-filter"></i>
+          Фильтры
+          <span class="filter-count">8</span>
+        </button>
+      </div>
+
+      <div class="filters-panel" id="filtersPanel">
+        <div class="filters-panel-title">
+          <span><i class="fas fa-sliders-h"></i> Фильтрация результатов</span>
+          <label class="filter-enable">
+            <input type="checkbox" checked>
+            применять
+          </label>
+        </div>
+        <div class="filter-grid">
+          <div class="filter-field full">
+            <label for="periodFilter">Период времени</label>
+            <input id="periodFilter" type="text" value="09.05.2026 00:00 - 10.05.2026 23:59">
+          </div>
+          <div class="filter-field">
+            <label for="countryFilter">Страна</label>
+            <select id="countryFilter">
+              <option>Любая</option>
+              <option selected>Россия</option>
+              <option>Беларусь</option>
+              <option>Казахстан</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="plateTypeFilter">Тип номера</label>
+            <select id="plateTypeFilter">
+              <option>Любой</option>
+              <option selected>Гражданский</option>
+              <option>Такси</option>
+              <option>Военный</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="brandFilter">Марка</label>
+            <input id="brandFilter" type="text" value="Audi">
+          </div>
+          <div class="filter-field">
+            <label for="modelFilter">Модель</label>
+            <input id="modelFilter" type="text" value="A6">
+          </div>
+          <div class="filter-field">
+            <label for="colorFilter">Цвет</label>
+            <select id="colorFilter">
+              <option>Любой</option>
+              <option selected>Черный</option>
+              <option>Белый</option>
+              <option>Серый</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="vehicleTypeFilter">Тип ТС</label>
+            <select id="vehicleTypeFilter">
+              <option>Любой</option>
+              <option selected>Легковой</option>
+              <option>Грузовой</option>
+              <option>Автобус</option>
+            </select>
+          </div>
+          <div class="filter-field full">
+            <label for="bodyTypeFilter">Тип кузова</label>
+            <select id="bodyTypeFilter">
+              <option>Любой</option>
+              <option selected>Седан</option>
+              <option>Универсал</option>
+              <option>Внедорожник</option>
+              <option>Хэтчбек</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="filter-action" type="button">Сбросить</button>
+          <button class="filter-action primary" type="button">Показать результаты</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-view="events" onclick="switchView('events', this)">
+        <i class="fas fa-list-ul"></i> События
+      </button>
+      <button class="panel-tab" data-view="routes" onclick="switchView('routes', this)">
+        <i class="fas fa-route"></i> Маршруты
+      </button>
+    </div>
+
+    <div class="panel-content" id="panelContent">
+      <div id="view-events">
+        <div class="day-group">
+          <div class="day-label"><i class="fas fa-calendar-day"></i> 10 мая, пятница</div>
+          <div class="event-card">
+            <div class="event-icon"><i class="fas fa-car"></i></div>
+            <div class="event-info">
+              <div class="event-type">Обнаружен субъект</div>
+              <div class="event-location">Объект по пр. Ленина, 10</div>
+              <div class="event-time"><i class="far fa-clock"></i> 16:16:07</div>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-icon"><i class="fas fa-car"></i></div>
+            <div class="event-info">
+              <div class="event-type">Распознан номер</div>
+              <div class="event-location">Машина по ул. Чапаевская, 112а</div>
+              <div class="event-time"><i class="far fa-clock"></i> 10:30:45</div>
+            </div>
+          </div>
+        </div>
+        <div class="day-group">
+          <div class="day-label"><i class="fas fa-calendar-day"></i> 9 мая, четверг</div>
+          <div class="event-card">
+            <div class="event-icon"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i></div>
+            <div class="event-info">
+              <div class="event-type">Стерильная зона</div>
+              <div class="event-location">Движение ТС в запрещенной зоне</div>
+              <div class="event-time"><i class="far fa-clock"></i> 14:55:22</div>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-icon"><i class="fas fa-parking"></i></div>
+            <div class="event-info">
+              <div class="event-type">Остановка ТС</div>
+              <div class="event-location">Парковка у остановки</div>
+              <div class="event-time"><i class="far fa-clock"></i> 07:20:55</div>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-icon"><i class="fas fa-car-crash" style="color:#f59e0b;"></i></div>
+            <div class="event-info">
+              <div class="event-type">ДТП</div>
+              <div class="event-location">Слишком близкое следование</div>
+              <div class="event-time"><i class="far fa-clock"></i> 07:20:55</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-routes" style="display:none;">
+        <div class="routes-toolbar">
+          <span><i class="fas fa-layer-group"></i> Сгруппировано по маршрутам</span>
+          <span>первый раскрыт</span>
+        </div>
+
+        <div class="route-group-card active" data-route="0">
+          <button class="route-group-toggle" type="button" onclick="toggleRoute(this)">
+            <span class="route-index">1</span>
+            <span class="route-summary">
+              <span class="route-title">
+                <span>А123ВС177 · Audi A6</span>
+                <span>5 точек</span>
+              </span>
+              <span class="route-stats">
+                <span>10 мая</span>
+                <span>16:16 - 18:05</span>
+                <span>22 км</span>
+              </span>
+            </span>
+            <i class="fas fa-chevron-down route-chevron"></i>
+          </button>
+          <div class="route-points">
+            <div class="route-point">
+              <div class="route-point-title">КПП Северный</div>
+              <div class="route-point-sub">Въезд в город</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 16:16:07</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">пр. Ленина, 10</div>
+              <div class="route-point-sub">Центральный район</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 16:42:30</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">ул. Чапаевская, 112а</div>
+              <div class="route-point-sub">Камера перекрестка</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 17:18:12</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Трасса М4</div>
+              <div class="route-point-sub">Южный выезд</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 17:44:59</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Пост ДПС Южный</div>
+              <div class="route-point-sub">Контрольная точка</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 18:05:21</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="route-group-card" data-route="1">
+          <button class="route-group-toggle" type="button" onclick="toggleRoute(this)">
+            <span class="route-index">2</span>
+            <span class="route-summary">
+              <span class="route-title">
+                <span>А123ВС177 · Audi A6</span>
+                <span>3 точки</span>
+              </span>
+              <span class="route-stats">
+                <span>9 мая</span>
+                <span>10:30 - 11:20</span>
+                <span>12 км</span>
+              </span>
+            </span>
+            <i class="fas fa-chevron-down route-chevron"></i>
+          </button>
+          <div class="route-points">
+            <div class="route-point">
+              <div class="route-point-title">ул. Пушкина, 23</div>
+              <div class="route-point-sub">Распознан номер</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 10:30:45</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Площадь Мира</div>
+              <div class="route-point-sub">Камера 15</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 10:58:11</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Набережная, 4</div>
+              <div class="route-point-sub">Съезд к мосту</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 11:20:03</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="route-group-card" data-route="2">
+          <button class="route-group-toggle" type="button" onclick="toggleRoute(this)">
+            <span class="route-index">3</span>
+            <span class="route-summary">
+              <span class="route-title">
+                <span>А123ВС177 · Audi A6</span>
+                <span>4 точки</span>
+              </span>
+              <span class="route-stats">
+                <span>9 мая</span>
+                <span>14:55 - 15:47</span>
+                <span>18 км</span>
+              </span>
+            </span>
+            <i class="fas fa-chevron-down route-chevron"></i>
+          </button>
+          <div class="route-points">
+            <div class="route-point">
+              <div class="route-point-title">МКАД 27 км</div>
+              <div class="route-point-sub">Внешняя сторона</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 14:55:22</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Каширское шоссе</div>
+              <div class="route-point-sub">Развязка</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 15:08:44</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">Домодедовская</div>
+              <div class="route-point-sub">Полоса А</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 15:28:19</div>
+            </div>
+            <div class="route-point">
+              <div class="route-point-title">КПП Южный</div>
+              <div class="route-point-sub">Выезд из города</div>
+              <div class="route-point-time"><i class="far fa-clock"></i> 15:47:02</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([55.7558, 37.6173], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  let currentPointsLayer = L.layerGroup().addTo(map);
+  let currentRouteLayer = L.layerGroup().addTo(map);
+
+  const routes = [
+    {
+      name: 'Маршрут 1',
+      coords: [[55.78, 37.58], [55.76, 37.61], [55.74, 37.64], [55.73, 37.65], [55.71, 37.68]],
+      color: '#3b82f6'
+    },
+    {
+      name: 'Маршрут 2',
+      coords: [[55.79, 37.55], [55.77, 37.57], [55.75, 37.59]],
+      color: '#22c55e'
+    },
+    {
+      name: 'Маршрут 3',
+      coords: [[55.69, 37.62], [55.70, 37.66], [55.72, 37.69], [55.74, 37.72]],
+      color: '#f59e0b'
+    }
+  ];
+
+  function clearMapLayers() {
+    currentPointsLayer.clearLayers();
+    currentRouteLayer.clearLayers();
+  }
+
+  function showPointsMap() {
+    clearMapLayers();
+    const points = [
+      [55.78, 37.58], [55.76, 37.61], [55.74, 37.64],
+      [55.73, 37.65], [55.71, 37.68], [55.72, 37.63], [55.77, 37.60]
+    ];
+    points.forEach(coord => {
+      L.circleMarker(coord, {
+        radius: 7, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.9, weight: 2
+      }).addTo(currentPointsLayer).bindPopup('Точка проезда');
+    });
+
+    const frequent = [[55.78, 37.58], [55.73, 37.65]];
+    frequent.forEach(coord => {
+      L.circleMarker(coord, {
+        radius: 10, color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.6, weight: 2
+      }).addTo(currentPointsLayer).bindPopup('Типовая точка');
+    });
+
+    L.marker([55.72, 37.66], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="background:#22c55e;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;box-shadow:0 0 12px #22c55e80;">3</div>',
+        iconSize: [36, 36]
+      })
+    }).addTo(currentPointsLayer).bindPopup('Кластер: 3 проезда');
+  }
+
+  function showRoutesMap(routeIndex = 0) {
+    clearMapLayers();
+    const route = routes[routeIndex] || routes[0];
+
+    L.polyline(route.coords, {
+      color: route.color, weight: 4, opacity: 0.85, dashArray: '8, 8'
+    }).addTo(currentRouteLayer).bindPopup(route.name);
+
+    route.coords.forEach((coord, i) => {
+      L.circleMarker(coord, {
+        radius: 7, color: route.color, fillColor: route.color, fillOpacity: 0.9, weight: 2
+      }).addTo(currentRouteLayer).bindPopup(`Точка ${i + 1}`);
+    });
+
+    const bounds = L.latLngBounds(route.coords);
+    map.fitBounds(bounds, { padding: [50, 50] });
+  }
+
+  function toggleFilters() {
+    document.getElementById('filtersPanel').classList.toggle('active');
+  }
+
+  function activateRoute(routeIndex) {
+    document.querySelectorAll('.route-group-card').forEach(item => {
+      item.classList.toggle('active', Number(item.dataset.route || 0) === routeIndex);
+    });
+    showRoutesMap(routeIndex);
+  }
+
+  function toggleRoute(btn) {
+    const card = btn.closest('.route-group-card');
+    const routeIndex = Number(card.dataset.route || 0);
+    const wasActive = card.classList.contains('active');
+
+    document.querySelectorAll('.route-group-card').forEach(item => item.classList.remove('active'));
+    card.classList.toggle('active', !wasActive);
+
+    showRoutesMap(routeIndex);
+  }
+
+  showPointsMap();
+  window.map = map;
+
+  function switchView(view, btn) {
+    document.querySelectorAll('.panel-tab').forEach(tab => tab.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.getElementById('view-events').style.display = 'none';
+    document.getElementById('view-routes').style.display = 'none';
+
+    if (view === 'events') {
+      document.getElementById('view-events').style.display = 'block';
+      showPointsMap();
+    } else if (view === 'routes') {
+      document.getElementById('view-routes').style.display = 'block';
+      activateRoute(0);
+    }
+
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+
+  window.switchView = switchView;
+  window.toggleFilters = toggleFilters;
+  window.toggleRoute = toggleRoute;
+</script>
+</body>
+</html>
