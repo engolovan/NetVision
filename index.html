@@ -1,0 +1,1813 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Личный кабинет NetVision</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-soft: #0b1728;
+      --panel: #101d30;
+      --panel-2: #13223a;
+      --panel-3: #172943;
+      --border: #263a59;
+      --border-soft: #1e304c;
+      --text: #e8f1ff;
+      --muted: #8fa4c2;
+      --muted-2: #617691;
+      --blue: #2684ff;
+      --blue-2: #0f6be6;
+      --blue-soft: rgba(38, 132, 255, 0.16);
+      --red: #ff5e75;
+      --red-soft: rgba(255, 94, 117, 0.13);
+      --green: #3ddc97;
+      --green-soft: rgba(61, 220, 151, 0.13);
+      --yellow: #f6c85f;
+      --yellow-soft: rgba(246, 200, 95, 0.14);
+      --purple: #a879ff;
+      --purple-soft: rgba(168, 121, 255, 0.16);
+      --gray-soft: rgba(143, 164, 194, 0.14);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+      --radius: 18px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(38, 132, 255, 0.24), transparent 34rem),
+        radial-gradient(circle at top right, rgba(168, 121, 255, 0.13), transparent 38rem),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 14px 28px;
+      background: rgba(7, 17, 31, 0.86);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), #7bb7ff);
+      box-shadow: 0 10px 28px rgba(38, 132, 255, 0.32);
+      font-weight: 900;
+      color: white;
+    }
+
+    .brand-title {
+      font-size: 17px;
+      font-weight: 760;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-subtitle {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main-menu {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .main-menu button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 10px 15px;
+      color: var(--muted);
+      background: transparent;
+      transition: 0.2s ease;
+    }
+
+    .main-menu button:hover,
+    .main-menu button.active {
+      color: var(--text);
+      background: var(--blue-soft);
+      border-color: rgba(38, 132, 255, 0.32);
+    }
+
+    .icon {
+      width: 19px;
+      height: 19px;
+      display: inline-grid;
+      place-items: center;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(16, 29, 48, 0.72);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #1d3355;
+      color: #bcd7ff;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .workspace {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 28px auto 48px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      color: #76adff;
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .account-tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 0 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .account-tab {
+      position: relative;
+      min-height: 48px;
+      padding: 13px 20px 12px;
+      border: 1px solid var(--border-soft);
+      border-bottom: 0;
+      border-radius: 16px 16px 0 0;
+      background: rgba(12, 24, 41, 0.72);
+      color: var(--muted);
+      white-space: nowrap;
+      transition: 0.2s ease;
+    }
+
+    .account-tab:hover {
+      color: var(--text);
+      background: rgba(19, 34, 58, 0.9);
+    }
+
+    .account-tab.active {
+      z-index: 2;
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(24, 44, 73, 0.98), rgba(16, 29, 48, 0.98));
+      border-color: var(--border);
+      box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.16);
+    }
+
+    .account-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: #101d30;
+    }
+
+    .account-tab.highlight {
+      border-color: rgba(143, 164, 194, 0.45);
+      background:
+        linear-gradient(180deg, rgba(143, 164, 194, 0.12), rgba(16, 29, 48, 0.82));
+    }
+
+    .account-tab.highlight.active {
+      border-color: rgba(168, 121, 255, 0.62);
+      box-shadow: 0 -8px 26px rgba(168, 121, 255, 0.14);
+    }
+
+    .account-section { display: none; }
+    .account-section.active { display: block; }
+
+    .panel {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(19, 34, 58, 0.93), rgba(12, 24, 41, 0.93));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 760;
+    }
+
+    .panel-caption {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .placeholder {
+      min-height: 240px;
+      display: grid;
+      place-items: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .placeholder strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 15px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      background: var(--panel-3);
+      color: var(--text);
+      transition: 0.2s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn.primary {
+      background: var(--blue);
+      color: white;
+      box-shadow: 0 12px 30px rgba(38, 132, 255, 0.28);
+    }
+
+    .btn.primary:hover { background: var(--blue-2); }
+    .btn.danger {
+      background: rgba(255, 94, 117, 0.12);
+      color: #ff9aaa;
+      border-color: rgba(255, 94, 117, 0.28);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--muted);
+    }
+
+    .btn.small {
+      min-height: 34px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .field, .select, .textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(7, 17, 31, 0.72);
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+      transition: 0.2s ease;
+    }
+
+    .textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .field:focus,
+    .select:focus,
+    .textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px var(--blue-soft);
+    }
+
+    .field::placeholder { color: var(--muted-2); }
+    label {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    label strong {
+      color: #cfdef5;
+      font-size: 13px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      color: #9eb3d0;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(7, 17, 31, 0.35);
+    }
+
+    tr:hover td { background: rgba(38, 132, 255, 0.035); }
+    td .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .badge.black {
+      color: #ff9cab;
+      background: var(--red-soft);
+      border-color: rgba(255, 94, 117, 0.22);
+    }
+
+    .badge.white {
+      color: #b9d8ff;
+      background: var(--blue-soft);
+      border-color: rgba(38, 132, 255, 0.26);
+    }
+
+    .badge.gray {
+      color: #dce3ef;
+      background: var(--gray-soft);
+      border-color: rgba(143, 164, 194, 0.28);
+    }
+
+    .badge.active-status {
+      color: #94f2c8;
+      background: var(--green-soft);
+      border-color: rgba(61, 220, 151, 0.23);
+    }
+
+    .badge.planned {
+      color: #b9d8ff;
+      background: var(--blue-soft);
+      border-color: rgba(38, 132, 255, 0.24);
+    }
+
+    .badge.expired {
+      color: #ffd989;
+      background: var(--yellow-soft);
+      border-color: rgba(246, 200, 95, 0.23);
+    }
+
+    .badge.archived {
+      color: #b2bfd4;
+      background: rgba(143, 164, 194, 0.11);
+      border-color: rgba(143, 164, 194, 0.2);
+    }
+
+    .empty-state {
+      padding: 42px 20px;
+      text-align: center;
+      color: var(--muted);
+      display: none;
+    }
+
+    .empty-state.visible { display: block; }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 45;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.2s ease;
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 50;
+      width: min(960px, calc(100vw - 36px));
+      height: auto;
+      max-height: 92vh;
+      transform: translate(-50%, -46%) scale(0.96);
+      opacity: 0;
+      pointer-events: none;
+      background: #0b1728;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+
+    .drawer.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-head {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .drawer-title {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .drawer-body {
+      padding: 20px;
+      overflow: auto;
+      display: grid;
+      gap: 22px;
+      max-height: calc(92vh - 148px);
+    }
+
+    .drawer-foot {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      background: rgba(7, 17, 31, 0.8);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-grid .span-2 { grid-column: 1 / -1; }
+
+    .hint {
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: var(--blue-soft);
+      color: #cfe4ff;
+      border: 1px solid rgba(38, 132, 255, 0.26);
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .error-box {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--red-soft);
+      color: #ffb8c3;
+      border: 1px solid rgba(255, 94, 117, 0.26);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .error-box.visible { display: block; }
+
+    .section-card {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius);
+      background: rgba(16, 29, 48, 0.66);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .section-card h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .number-table-wrap {
+      overflow: hidden;
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      background: rgba(7, 17, 31, 0.35);
+    }
+
+    .number-table { min-width: 0; }
+    .number-table th,
+    .number-table td { padding: 10px 12px; }
+
+    .upload-zone {
+      border: 1px dashed rgba(38, 132, 255, 0.45);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(38, 132, 255, 0.055);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .upload-result {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .result-chip {
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(7, 17, 31, 0.5);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .result-chip strong {
+      display: block;
+      color: var(--text);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.58);
+      padding: 20px;
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(1000px, 96vw);
+      max-height: 90vh;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: #0b1728;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .modal-head,
+    .modal-foot {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-foot {
+      border-top: 1px solid var(--border-soft);
+      border-bottom: 0;
+      justify-content: flex-end;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .trigger-layout {
+      display: grid;
+      grid-template-columns: 310px 1fr;
+      gap: 18px;
+    }
+
+    .info-stack {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .info-row {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(16, 29, 48, 0.72);
+      border: 1px solid var(--border-soft);
+    }
+
+    .info-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .info-row strong { color: var(--text); }
+
+    .map-preview {
+      min-height: 220px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(90deg, rgba(38, 132, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(38, 132, 255, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 26% 40%, rgba(38, 132, 255, 0.28), transparent 10rem),
+        radial-gradient(circle at 70% 62%, rgba(61, 220, 151, 0.15), transparent 9rem),
+        #081424;
+      background-size: 32px 32px, 32px 32px, auto, auto, auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .camera-dot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 0 7px rgba(38, 132, 255, 0.16), 0 0 24px rgba(38, 132, 255, 0.7);
+    }
+
+    .camera-dot:nth-child(1) { left: 22%; top: 34%; }
+    .camera-dot:nth-child(2) { left: 52%; top: 55%; }
+    .camera-dot:nth-child(3) { left: 73%; top: 28%; }
+
+    .selected-area {
+      position: absolute;
+      left: 38%;
+      top: 26%;
+      width: 250px;
+      height: 112px;
+      border: 2px solid var(--blue);
+      background: rgba(38, 132, 255, 0.12);
+      border-radius: 24px 60px 28px 46px;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .bulk-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-row th {
+      padding: 10px 12px;
+      background: rgba(7, 17, 31, 0.52);
+    }
+
+    .header-filter {
+      min-width: 130px;
+      min-height: 34px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .mini-check {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .row-clickable { cursor: pointer; }
+    .row-clickable:hover td { background: rgba(38, 132, 255, 0.075); }
+
+    .type-select-wrap { display: grid; gap: 8px; }
+
+    .sort-icon {
+      display: inline-flex;
+      margin-left: 6px;
+      color: #6fa8ff;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .plain-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      width: fit-content;
+    }
+
+    .plain-check input { accent-color: var(--blue); }
+
+    .map-icon-btn {
+      width: 46px;
+      min-width: 46px;
+      padding: 0;
+      font-size: 20px;
+      position: relative;
+    }
+
+    .map-icon-btn.selected {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #d8eaff;
+      box-shadow: 0 0 0 4px rgba(38, 132, 255, 0.10);
+    }
+
+    .compact-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .gray-panel {
+      border-color: rgba(143, 164, 194, 0.38);
+      background:
+        radial-gradient(circle at 84% 0%, rgba(168, 121, 255, 0.14), transparent 21rem),
+        linear-gradient(180deg, rgba(24, 34, 51, 0.96), rgba(12, 24, 41, 0.94));
+    }
+
+    .gray-panel .panel-header {
+      background: linear-gradient(90deg, rgba(143, 164, 194, 0.1), transparent);
+    }
+
+    .gray-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .gray-metric {
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(7, 17, 31, 0.42);
+      border: 1px solid var(--border-soft);
+    }
+
+    .gray-metric strong {
+      display: block;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .gray-metric span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .gray-content {
+      display: grid;
+      gap: 16px;
+      padding: 18px 20px 20px;
+    }
+
+    .gray-toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 90;
+      transform: translateX(-50%) translateY(18px);
+      opacity: 0;
+      pointer-events: none;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: #10213a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: 0.2s ease;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 1120px) {
+      .trigger-layout,
+      .gray-summary { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px;
+      }
+
+      .main-menu {
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+      }
+
+      .workspace {
+        width: min(100vw - 24px, 1480px);
+        margin-top: 18px;
+      }
+
+      .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .form-grid,
+      .upload-result,
+      .gray-toolbar { grid-template-columns: 1fr; }
+
+      .drawer { width: calc(100vw - 20px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">NV</div>
+        <div>
+          <div class="brand-title">NetVision</div>
+          <div class="brand-subtitle">Платформа распознавания номеров</div>
+        </div>
+      </div>
+      <nav class="main-menu" aria-label="Главное меню">
+        <button type="button"><span class="icon">📷</span>Камеры</button>
+        <button type="button"><span class="icon">⚡</span>События</button>
+        <button type="button" class="active"><span class="icon">👤</span>Личный кабинет</button>
+      </nav>
+      <div class="user-chip"><span class="avatar">АК</span><span>Администратор</span></div>
+    </header>
+
+    <main class="workspace">
+      <div class="page-header">
+        <div>
+          <div class="eyebrow">Личный кабинет</div>
+          <h1>Управление списками номеров</h1>
+          <p class="lead">Верхние вкладки разделяют подразделы личного кабинета. Серый список вынесен отдельно: он единственный, поэтому без реестра списков, периода действия и выбора камер.</p>
+        </div>
+      </div>
+
+      <nav class="account-tabs" aria-label="Разделы личного кабинета">
+        <button class="account-tab" id="tab-personal" type="button" data-account-tab="personal">Личные данные</button>
+        <button class="account-tab" id="tab-records" type="button" data-account-tab="records">Записи и файлы</button>
+        <button class="account-tab active" id="tab-lists" type="button" data-account-tab="lists">Черные и белые списки</button>
+        <button class="account-tab highlight" id="tab-gray" type="button" data-account-tab="gray">Серый список</button>
+      </nav>
+
+      <section class="account-section" id="section-personal" aria-labelledby="tab-personal">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Личные данные</h2>
+              <div class="panel-caption">Раздел добавлен в структуру личного кабинета.</div>
+            </div>
+          </div>
+          <div class="placeholder">
+            <div>
+              <strong>Содержимое не заполняется в этом прототипе</strong>
+              Форма личных данных остается за рамками текущей доработки.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="account-section" id="section-records" aria-labelledby="tab-records">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Записи и файлы</h2>
+              <div class="panel-caption">Раздел добавлен в структуру личного кабинета.</div>
+            </div>
+          </div>
+          <div class="placeholder">
+            <div>
+              <strong>Содержимое не заполняется в этом прототипе</strong>
+              Списки записей и файлов не входят в текущую форму.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="account-section active" id="section-lists" aria-labelledby="tab-lists">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Реестр черных и белых списков</h2>
+              <div class="panel-caption">Личные черные и белые списки с настройками периода, камер и номеров.</div>
+            </div>
+          </div>
+          <div class="action-bar">
+            <div class="bulk-actions">
+              <button class="btn primary" type="button" id="openCreateBtn">Создать список</button>
+              <button class="btn" type="button" id="bulkArchiveBtn" disabled>Архивировать выбранные</button>
+              <button class="btn danger" type="button" id="bulkDeleteBtn" disabled>Удалить выбранные</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th><input class="mini-check" type="checkbox" id="selectAllLists" aria-label="Выбрать все списки" /></th>
+                  <th>Название <span class="sort-icon">↕</span></th>
+                  <th>Тип списка <span class="sort-icon">↕</span></th>
+                  <th>Статус <span class="sort-icon">↕</span></th>
+                  <th>Номера <span class="sort-icon">↕</span></th>
+                  <th>Период действия <span class="sort-icon">↕</span></th>
+                  <th>Камеры <span class="sort-icon">↕</span></th>
+                  <th>Создан <span class="sort-icon">↕</span></th>
+                  <th>Изменен <span class="sort-icon">↕</span></th>
+                </tr>
+                <tr class="filter-row">
+                  <th></th>
+                  <th><input class="field header-filter" type="search" id="searchInput" placeholder="Название или номер" /></th>
+                  <th>
+                    <select class="select header-filter" id="typeFilter" aria-label="Фильтр по типу">
+                      <option value="all">Все</option>
+                      <option value="Черный">Черный</option>
+                      <option value="Белый">Белый</option>
+                    </select>
+                  </th>
+                  <th>
+                    <select class="select header-filter" id="statusFilter" aria-label="Фильтр по статусу">
+                      <option value="all">Все</option>
+                      <option value="Активен">Активен</option>
+                      <option value="Запланирован">Запланирован</option>
+                      <option value="Истек">Истек</option>
+                      <option value="Архивирован">Архивирован</option>
+                    </select>
+                  </th>
+                  <th></th>
+                  <th></th>
+                  <th>
+                    <select class="select header-filter" id="cameraFilter" aria-label="Фильтр по камерам">
+                      <option value="all">Все</option>
+                      <option value="Камеры выбраны">Камеры выбраны</option>
+                      <option value="Без ограничений">Без ограничений</option>
+                    </select>
+                  </th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="listsTable"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="emptyState">Списки не найдены. Измените фильтры или создайте новый список.</div>
+        </div>
+      </section>
+
+      <section class="account-section" id="section-gray" aria-labelledby="tab-gray">
+        <div class="panel gray-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Серый список</h2>
+              <div class="panel-caption">Единый список номеров без реестра, периода действия и перечня камер.</div>
+            </div>
+            <button class="btn primary" type="button" id="openGrayResultsBtn">Посмотреть результаты</button>
+          </div>
+
+          <div class="gray-summary">
+            <div class="gray-metric">
+              <strong id="grayNumbersCount">0</strong>
+              <span>номеров в сером списке</span>
+            </div>
+            <div class="gray-metric">
+              <strong>Всегда активен</strong>
+              <span>без настройки периода работы</span>
+            </div>
+            <div class="gray-metric">
+              <strong>Все камеры</strong>
+              <span>без отдельного выбора камер</span>
+            </div>
+          </div>
+
+          <div class="gray-content">
+            <div class="hint">Серый список существует в одном экземпляре. Работа с номерами аналогична черным и белым спискам: можно добавить номер вручную, удалить выбранные строки или выполнить пакетную загрузку.</div>
+
+            <div class="section-card">
+              <h3>Номера</h3>
+              <div class="gray-toolbar">
+                <input class="field" id="grayNumberInput" placeholder="Введите номер, например A123BC77" />
+                <button class="btn primary" id="addGrayNumberBtn" type="button">Добавить номер</button>
+                <button class="btn danger" id="deleteSelectedGrayNumbersBtn" type="button" disabled>Удалить выбранные</button>
+              </div>
+              <div class="error-box" id="grayErrors"></div>
+              <div class="number-table-wrap">
+                <table class="number-table">
+                  <thead>
+                    <tr>
+                      <th><input class="mini-check" type="checkbox" id="selectAllGrayNumbers" aria-label="Выбрать все номера серого списка" /></th>
+                      <th>Номер</th>
+                      <th>Источник</th>
+                      <th>Добавлен</th>
+                    </tr>
+                  </thead>
+                  <tbody id="grayNumberTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <h3>Пакетная загрузка</h3>
+              <div class="panel-caption">Требование к файлу: поддерживаются только CSV или XLSX.</div>
+              <div class="upload-zone">
+                <div><strong>Загрузка файла номеров</strong></div>
+                <button class="btn" type="button" id="uploadGrayMockBtn">Загрузить файл</button>
+              </div>
+              <div class="upload-result" id="grayUploadResult" style="display:none;">
+                <div class="result-chip"><strong>24</strong>добавлено</div>
+                <div class="result-chip"><strong>2</strong>отклонено</div>
+                <div class="result-chip"><strong>5</strong>дубликаты</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="listDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <h2 class="drawer-title" id="drawerTitle">Создать список</h2>
+        <div class="panel-caption">Заполните обязательные поля, номера и область действия списка.</div>
+      </div>
+      <button class="btn ghost small" type="button" id="closeDrawerBtn">Закрыть</button>
+    </div>
+    <div class="drawer-body">
+      <div class="error-box" id="formErrors"></div>
+      <div class="form-grid">
+        <label class="span-2">
+          <strong>Название списка</strong>
+          <input class="field" id="listName" placeholder="Например, Контроль должников" />
+        </label>
+        <label class="span-2 type-select-wrap">
+          <strong>Тип списка</strong>
+          <select class="select" id="listTypeSelect">
+            <option value="Черный">Черный список</option>
+            <option value="Белый">Белый список</option>
+          </select>
+        </label>
+        <div class="span-2 panel-caption" id="typeHint">Сработка создается, если распознанный номер есть в списке.</div>
+        <label><strong>Дата и время начала</strong><input class="field" id="dateStart" type="datetime-local" value="2026-06-06T09:00" /></label>
+        <label><strong>Дата и время окончания</strong><input class="field" id="dateEnd" type="datetime-local" value="2026-07-06T18:00" /></label>
+        <label class="plain-check span-2"><input type="checkbox" id="unlimitedCheck" /> Бессрочно</label>
+      </div>
+
+      <div class="section-card">
+        <h3>Камеры</h3>
+        <div class="compact-row">
+          <label class="plain-check"><input type="checkbox" id="allCamerasCheck" /> Без ограничений по камерам</label>
+          <button class="btn map-icon-btn selected" type="button" id="openMapBtn" title="Камеры выбраны" aria-label="Выбрать камеры на карте">🗺️</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Номера</h3>
+        <div style="display:grid; grid-template-columns:1fr auto; gap:10px;">
+          <input class="field" id="numberInput" placeholder="Введите номер, например A123BC77" />
+          <button class="btn primary" id="addNumberBtn" type="button">Добавить номер</button>
+        </div>
+        <div class="number-table-wrap">
+          <table class="number-table">
+            <thead>
+              <tr>
+                <th><input class="mini-check" type="checkbox" id="selectAllNumbers" aria-label="Выбрать все номера" /></th>
+                <th>Номер</th>
+                <th>Источник</th>
+              </tr>
+            </thead>
+            <tbody id="numberTableBody"></tbody>
+          </table>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn danger small" id="deleteSelectedNumbersBtn" type="button" disabled>Удалить выбранные</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Пакетная загрузка</h3>
+        <div class="panel-caption">Требование к файлу: поддерживаются только CSV или XLSX.</div>
+        <div class="upload-zone">
+          <div><strong>Загрузка файла номеров</strong></div>
+          <button class="btn" type="button" id="uploadMockBtn">Загрузить файл</button>
+        </div>
+        <div class="upload-result" id="uploadResult" style="display:none;">
+          <div class="result-chip"><strong>38</strong>добавлено</div>
+          <div class="result-chip"><strong>4</strong>отклонено</div>
+          <div class="result-chip"><strong>7</strong>дубликаты</div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button class="btn ghost" type="button" id="cancelDrawerBtn">Отмена</button>
+      <button class="btn primary" type="button" id="saveListBtn">Сохранить</button>
+    </div>
+  </aside>
+
+  <div class="modal" id="resultsModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 class="drawer-title" id="resultsTitle">Результаты</h2>
+          <div class="panel-caption" id="resultsCaption">Стандартное представление результатов по выбранному разделу.</div>
+        </div>
+        <button class="btn ghost small" id="closeResultsBtn" type="button">Закрыть</button>
+      </div>
+      <div class="modal-body">
+        <div class="trigger-layout">
+          <div class="info-stack" id="resultsInfo"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Номер</th>
+                  <th>Камера</th>
+                  <th>Дата и время</th>
+                  <th>Тип списка</th>
+                  <th>Статус обработки</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot"><button class="btn" id="closeResultsBtn2" type="button">Закрыть</button></div>
+    </div>
+  </div>
+
+  <div class="modal" id="mapModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 class="drawer-title">Выбор камер на карте</h2>
+          <div class="panel-caption">Демонстрация выбора камер по области.</div>
+        </div>
+        <button class="btn ghost small" id="closeMapBtn" type="button">Закрыть</button>
+      </div>
+      <div class="modal-body">
+        <div class="map-preview">
+          <span class="camera-dot"></span>
+          <span class="camera-dot"></span>
+          <span class="camera-dot"></span>
+          <span class="selected-area"></span>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="cancelMapBtn" type="button">Отмена</button>
+        <button class="btn primary" id="applyMapBtn" type="button">Выбрать камеры</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Сохранено</div>
+
+  <script>
+    const lists = [
+      {
+        name: "Контроль должников",
+        type: "Черный",
+        status: "Активен",
+        numbers: ["A123BC77", "M778OO197", "K042MP50"],
+        period: "06.06.2026 - 06.07.2026",
+        cameras: "Камеры выбраны",
+        created: "05.06.2026",
+        updated: "05.06.2026"
+      },
+      {
+        name: "Разрешенный транспорт офиса",
+        type: "Белый",
+        status: "Запланирован",
+        numbers: ["E500KX777", "X014AM97", "B777OP99"],
+        period: "10.06.2026 - бессрочно",
+        cameras: "Камеры выбраны",
+        created: "04.06.2026",
+        updated: "05.06.2026"
+      },
+      {
+        name: "Старый список подрядчиков",
+        type: "Белый",
+        status: "Архивирован",
+        numbers: ["T202EC78", "C919CC199"],
+        period: "01.02.2026 - 01.05.2026",
+        cameras: "Камеры выбраны",
+        created: "01.02.2026",
+        updated: "01.05.2026"
+      },
+      {
+        name: "Ночной контроль парковки",
+        type: "Черный",
+        status: "Истек",
+        numbers: ["AA7788AA", "ZX4219TR"],
+        period: "01.05.2026 - 31.05.2026",
+        cameras: "Без ограничений",
+        created: "28.04.2026",
+        updated: "31.05.2026"
+      }
+    ];
+
+    const listResults = {
+      "Контроль должников": [
+        ["A123BC77", "КПП Север", "05.06.2026 10:42", "Черный", "Обработано"],
+        ["M778OO197", "Офис: въезд", "05.06.2026 11:08", "Черный", "Уведомление отправлено"],
+        ["K042MP50", "КПП Север", "05.06.2026 11:36", "Черный", "Обработано"]
+      ],
+      "Разрешенный транспорт офиса": [
+        ["P901TM77", "Офис: въезд", "10.06.2026 09:14", "Белый", "Обработано"],
+        ["H441AP777", "Офис: выезд", "10.06.2026 10:02", "Белый", "Уведомление отправлено"]
+      ],
+      "Старый список подрядчиков": [
+        ["Z452ZZ90", "Склад: ворота 2", "20.04.2026 16:31", "Белый", "Архив"]
+      ],
+      "Ночной контроль парковки": [
+        ["AA7788AA", "Парковка B", "12.05.2026 02:18", "Черный", "Архив"]
+      ]
+    };
+
+    const grayResults = [
+      ["C548PX77", "КПП Север", "05.06.2026 12:18", "Серый", "Требует проверки"],
+      ["O777OO97", "Офис: въезд", "05.06.2026 13:04", "Серый", "Назначен оператору"],
+      ["A001AA197", "Парковка B", "05.06.2026 14:27", "Серый", "Проверка завершена"]
+    ];
+
+    const state = {
+      selectedType: "Черный",
+      drawerMode: "create",
+      editingList: null,
+      numbers: ["A123BC77", "M778OO197"],
+      selectedNumbers: new Set(),
+      selectedListIndexes: new Set(),
+      cameraSelected: true,
+      grayNumbers: ["C548PX77", "O777OO97", "A001AA197"],
+      selectedGrayNumbers: new Set()
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function statusClass(status) {
+      return {
+        "Активен": "active-status",
+        "Запланирован": "planned",
+        "Истек": "expired",
+        "Архивирован": "archived"
+      }[status] || "archived";
+    }
+
+    function activateAccountTab(tabName) {
+      $$(".account-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.accountTab === tabName);
+      });
+      $$(".account-section").forEach((section) => {
+        section.classList.toggle("active", section.id === `section-${tabName}`);
+      });
+    }
+
+    function renderLists() {
+      const query = $("#searchInput").value.trim().toLowerCase();
+      const type = $("#typeFilter").value;
+      const status = $("#statusFilter").value;
+      const camera = $("#cameraFilter").value;
+      const filtered = lists
+        .map((item, sourceIndex) => ({ item, sourceIndex }))
+        .filter(({ item }) => {
+          const haystack = [item.name, item.type, item.status, item.cameras, ...item.numbers].join(" ").toLowerCase();
+          return (!query || haystack.includes(query))
+            && (type === "all" || item.type === type)
+            && (status === "all" || item.status === status)
+            && (camera === "all" || item.cameras.includes(camera));
+        });
+
+      $("#listsTable").innerHTML = filtered.map(({ item, sourceIndex }) => `
+        <tr class="row-clickable" data-row-index="${sourceIndex}">
+          <td><input class="mini-check row-select" type="checkbox" data-index="${sourceIndex}" ${state.selectedListIndexes.has(sourceIndex) ? "checked" : ""} aria-label="Выбрать список ${item.name}" /></td>
+          <td><strong>${item.name}</strong><div class="muted">${item.numbers.slice(0, 2).join(", ")}${item.numbers.length > 2 ? "..." : ""}</div></td>
+          <td><span class="badge ${item.type === "Черный" ? "black" : "white"}">${item.type}</span></td>
+          <td><span class="badge ${statusClass(item.status)}">${item.status}</span></td>
+          <td>${item.numbers.length}</td>
+          <td>${item.period}</td>
+          <td>${item.cameras}</td>
+          <td>${item.created}</td>
+          <td>${item.updated}</td>
+        </tr>
+      `).join("");
+
+      $("#emptyState").classList.toggle("visible", filtered.length === 0);
+      updateBulkActions();
+    }
+
+    function updateBulkActions() {
+      const hasSelected = state.selectedListIndexes.size > 0;
+      $("#bulkArchiveBtn").disabled = !hasSelected;
+      $("#bulkDeleteBtn").disabled = !hasSelected;
+      const visibleChecks = $$(".row-select");
+      $("#selectAllLists").checked = visibleChecks.length > 0 && visibleChecks.every((input) => input.checked);
+    }
+
+    function openDrawer(mode = "create", item = null) {
+      state.drawerMode = mode;
+      state.editingList = item;
+      $("#drawerTitle").textContent = mode === "edit" ? "Просмотр и редактирование списка" : "Создать список";
+      $("#formErrors").classList.remove("visible");
+      $("#uploadResult").style.display = "none";
+      if (item) {
+        $("#listName").value = item.name;
+        state.selectedType = item.type;
+        state.numbers = [...item.numbers];
+        state.selectedNumbers = new Set();
+        $("#allCamerasCheck").checked = item.cameras === "Без ограничений";
+        state.cameraSelected = item.cameras !== "Без ограничений";
+      } else {
+        $("#listName").value = "";
+        state.selectedType = "Черный";
+        state.numbers = ["A123BC77", "M778OO197"];
+        state.selectedNumbers = new Set();
+        $("#allCamerasCheck").checked = false;
+        state.cameraSelected = true;
+      }
+      syncTypeSelect();
+      renderNumbers();
+      updateCameraPicker();
+      $("#drawerBackdrop").classList.add("open");
+      $("#listDrawer").classList.add("open");
+      $("#listDrawer").setAttribute("aria-hidden", "false");
+    }
+
+    function closeDrawer() {
+      $("#drawerBackdrop").classList.remove("open");
+      $("#listDrawer").classList.remove("open");
+      $("#listDrawer").setAttribute("aria-hidden", "true");
+    }
+
+    function syncTypeSelect() {
+      $("#listTypeSelect").value = state.selectedType;
+      $("#typeHint").textContent = state.selectedType === "Черный"
+        ? "Сработка создается, если распознанный номер есть в списке."
+        : "Сработка создается, если распознанного номера нет в списке.";
+    }
+
+    function updateCameraPicker() {
+      const allSelected = $("#allCamerasCheck").checked;
+      const mapButton = $("#openMapBtn");
+      mapButton.disabled = allSelected;
+      mapButton.classList.toggle("selected", state.cameraSelected && !allSelected);
+      mapButton.title = state.cameraSelected && !allSelected ? "Камеры выбраны" : "Выбрать камеры на карте";
+    }
+
+    function normalizeNumber(value) {
+      return value.trim().toUpperCase().replace(/\s+/g, "");
+    }
+
+    function validateNumber(normalized, existingNumbers) {
+      const errors = [];
+      if (!normalized) errors.push("Номер не должен быть пустым.");
+      if (normalized.length > 16) errors.push("Номер не должен превышать допустимую длину.");
+      if (/[^A-ZА-ЯЁ0-9-]/i.test(normalized)) errors.push("Номер содержит запрещенные символы.");
+      if (existingNumbers.includes(normalized)) errors.push("Такой номер уже есть в списке.");
+      return errors;
+    }
+
+    function renderNumbers() {
+      $("#numberTableBody").innerHTML = state.numbers.map((num) => `
+        <tr>
+          <td><input class="mini-check number-select" type="checkbox" data-number="${num}" ${state.selectedNumbers.has(num) ? "checked" : ""} aria-label="Выбрать номер ${num}" /></td>
+          <td><strong>${num}</strong></td>
+          <td><span class="muted">${num.startsWith("H") || num.startsWith("P") || num.startsWith("E") ? "Импорт" : "Ручной ввод"}</span></td>
+        </tr>
+      `).join("");
+      updateNumberActions();
+    }
+
+    function updateNumberActions() {
+      $("#deleteSelectedNumbersBtn").disabled = state.selectedNumbers.size === 0;
+      const visibleChecks = $$(".number-select");
+      $("#selectAllNumbers").checked = visibleChecks.length > 0 && visibleChecks.every((input) => input.checked);
+    }
+
+    function addNumber() {
+      const normalized = normalizeNumber($("#numberInput").value);
+      const errors = validateNumber(normalized, state.numbers);
+      if (errors.length) return showErrors("#formErrors", errors);
+      state.numbers.push(normalized);
+      state.selectedNumbers.clear();
+      $("#numberInput").value = "";
+      $("#formErrors").classList.remove("visible");
+      renderNumbers();
+      showToast("Номер добавлен");
+    }
+
+    function showErrors(selector, errors) {
+      const box = $(selector);
+      box.innerHTML = errors.map((error) => `• ${error}`).join("<br>");
+      box.classList.add("visible");
+    }
+
+    function saveList() {
+      const errors = [];
+      const name = $("#listName").value.trim();
+      const start = $("#dateStart").value;
+      const end = $("#dateEnd").value;
+      const unlimited = $("#unlimitedCheck").checked;
+      const allCameras = $("#allCamerasCheck").checked;
+
+      if (!name) errors.push("Заполните название списка.");
+      if (!state.selectedType) errors.push("Выберите тип списка.");
+      if (!start) errors.push("Укажите дату и время начала.");
+      if (!unlimited && !end) errors.push("Укажите дату и время окончания или выберите бессрочный режим.");
+      if (!unlimited && start && end && new Date(end) <= new Date(start)) errors.push("Дата окончания должна быть позже даты начала.");
+      if (!state.numbers.length) errors.push("Добавьте хотя бы один номер.");
+      if (!allCameras && !state.cameraSelected) errors.push("Выберите камеры на карте или включите режим без ограничений по камерам.");
+      if (errors.length) return showErrors("#formErrors", errors);
+
+      const newItem = {
+        name,
+        type: state.selectedType,
+        status: new Date(start) > new Date() ? "Запланирован" : "Активен",
+        numbers: [...state.numbers],
+        period: unlimited ? `${formatDate(start)} - бессрочно` : `${formatDate(start)} - ${formatDate(end)}`,
+        cameras: allCameras ? "Без ограничений" : "Камеры выбраны",
+        created: formatDate(new Date().toISOString()),
+        updated: formatDate(new Date().toISOString())
+      };
+
+      if (state.drawerMode === "edit" && state.editingList) {
+        Object.assign(state.editingList, newItem, { created: state.editingList.created });
+      } else {
+        lists.unshift(newItem);
+      }
+      renderLists();
+      closeDrawer();
+      showToast("Список сохранен");
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("ru-RU");
+    }
+
+    function openListResults(item) {
+      const rows = listResults[item.name] || [[item.numbers[0] || "A000AA00", item.cameras, "05.06.2026 12:10", item.type, "Обработано"]];
+      $("#resultsTitle").textContent = `Сработки: ${item.name}`;
+      $("#resultsCaption").textContent = "Стандартное представление сработок с привязкой к списку.";
+      $("#resultsInfo").innerHTML = `
+        <div class="info-row"><span>Название списка</span><strong>${item.name}</strong></div>
+        <div class="info-row"><span>Тип списка</span><strong>${item.type}</strong></div>
+        <div class="info-row"><span>Период работы</span><strong>${item.period}</strong></div>
+        <button class="btn primary" id="backToListBtn" type="button">Вернуться к списку</button>
+      `;
+      renderResults(rows);
+      $("#resultsModal").classList.add("open");
+      $("#backToListBtn").addEventListener("click", closeResults);
+    }
+
+    function openGrayResults() {
+      $("#resultsTitle").textContent = "Результаты по серому списку";
+      $("#resultsCaption").textContent = "Серый список один, поэтому результаты открываются без выбора отдельного списка.";
+      $("#resultsInfo").innerHTML = `
+        <div class="info-row"><span>Раздел</span><strong>Серый список</strong></div>
+        <div class="info-row"><span>Период работы</span><strong>Всегда активен</strong></div>
+        <div class="info-row"><span>Камеры</span><strong>Все камеры</strong></div>
+      `;
+      renderResults(grayResults);
+      $("#resultsModal").classList.add("open");
+    }
+
+    function renderResults(rows) {
+      $("#resultsTable").innerHTML = rows.map((row) => {
+        const badgeClass = row[3] === "Черный" ? "black" : row[3] === "Белый" ? "white" : "gray";
+        return `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td><td>${row[2]}</td><td><span class="badge ${badgeClass}">${row[3]}</span></td><td>${row[4]}</td></tr>`;
+      }).join("");
+    }
+
+    function closeResults() {
+      $("#resultsModal").classList.remove("open");
+    }
+
+    function openMap() { $("#mapModal").classList.add("open"); }
+    function closeMap() { $("#mapModal").classList.remove("open"); }
+
+    function renderGrayNumbers() {
+      $("#grayNumberTableBody").innerHTML = state.grayNumbers.map((num, index) => `
+        <tr>
+          <td><input class="mini-check gray-number-select" type="checkbox" data-number="${num}" ${state.selectedGrayNumbers.has(num) ? "checked" : ""} aria-label="Выбрать номер ${num}" /></td>
+          <td><strong>${num}</strong></td>
+          <td><span class="muted">${index > 1 ? "Импорт" : "Ручной ввод"}</span></td>
+          <td>${index > 1 ? "05.06.2026" : "04.06.2026"}</td>
+        </tr>
+      `).join("");
+      $("#grayNumbersCount").textContent = state.grayNumbers.length;
+      updateGrayNumberActions();
+    }
+
+    function updateGrayNumberActions() {
+      $("#deleteSelectedGrayNumbersBtn").disabled = state.selectedGrayNumbers.size === 0;
+      const visibleChecks = $$(".gray-number-select");
+      $("#selectAllGrayNumbers").checked = visibleChecks.length > 0 && visibleChecks.every((input) => input.checked);
+    }
+
+    function addGrayNumber() {
+      const normalized = normalizeNumber($("#grayNumberInput").value);
+      const errors = validateNumber(normalized, state.grayNumbers);
+      if (errors.length) return showErrors("#grayErrors", errors);
+      state.grayNumbers.push(normalized);
+      state.selectedGrayNumbers.clear();
+      $("#grayNumberInput").value = "";
+      $("#grayErrors").classList.remove("visible");
+      renderGrayNumbers();
+      showToast("Номер добавлен в серый список");
+    }
+
+    function showToast(message) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("visible"), 2200);
+    }
+
+    $$(".account-tab").forEach((tab) => {
+      tab.addEventListener("click", () => activateAccountTab(tab.dataset.accountTab));
+    });
+
+    ["#searchInput", "#typeFilter", "#statusFilter", "#cameraFilter"].forEach((selector) => {
+      $(selector).addEventListener("input", renderLists);
+    });
+
+    $("#openCreateBtn").addEventListener("click", () => openDrawer("create"));
+    $("#closeDrawerBtn").addEventListener("click", closeDrawer);
+    $("#cancelDrawerBtn").addEventListener("click", closeDrawer);
+    $("#drawerBackdrop").addEventListener("click", closeDrawer);
+    $("#saveListBtn").addEventListener("click", saveList);
+    $("#addNumberBtn").addEventListener("click", addNumber);
+    $("#numberInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") addNumber();
+    });
+    $("#uploadMockBtn").addEventListener("click", () => {
+      $("#uploadResult").style.display = "grid";
+      ["H441AP777", "P901TM77", "E500KX777"].forEach((num) => {
+        if (!state.numbers.includes(num)) state.numbers.push(num);
+      });
+      renderNumbers();
+      showToast("Файл обработан");
+    });
+    $("#openMapBtn").addEventListener("click", openMap);
+    $("#closeMapBtn").addEventListener("click", closeMap);
+    $("#cancelMapBtn").addEventListener("click", closeMap);
+    $("#applyMapBtn").addEventListener("click", () => {
+      state.cameraSelected = true;
+      updateCameraPicker();
+      closeMap();
+      showToast("Камеры выбраны на карте");
+    });
+    $("#closeResultsBtn").addEventListener("click", closeResults);
+    $("#closeResultsBtn2").addEventListener("click", closeResults);
+    $("#unlimitedCheck").addEventListener("change", (event) => {
+      $("#dateEnd").disabled = event.target.checked;
+    });
+    $("#allCamerasCheck").addEventListener("change", updateCameraPicker);
+
+    $("#listTypeSelect").addEventListener("change", (event) => {
+      state.selectedType = event.target.value;
+      syncTypeSelect();
+    });
+
+    $("#numberTableBody").addEventListener("change", (event) => {
+      if (!event.target.classList.contains("number-select")) return;
+      const num = event.target.dataset.number;
+      if (event.target.checked) state.selectedNumbers.add(num);
+      else state.selectedNumbers.delete(num);
+      updateNumberActions();
+    });
+
+    $("#selectAllNumbers").addEventListener("change", (event) => {
+      $$(".number-select").forEach((input) => {
+        input.checked = event.target.checked;
+        if (event.target.checked) state.selectedNumbers.add(input.dataset.number);
+        else state.selectedNumbers.delete(input.dataset.number);
+      });
+      updateNumberActions();
+    });
+
+    $("#deleteSelectedNumbersBtn").addEventListener("click", () => {
+      state.numbers = state.numbers.filter((num) => !state.selectedNumbers.has(num));
+      state.selectedNumbers.clear();
+      renderNumbers();
+      showToast("Выбранные номера удалены");
+    });
+
+    $("#listsTable").addEventListener("click", (event) => {
+      const checkbox = event.target.closest(".row-select");
+      if (checkbox) {
+        const index = Number(checkbox.dataset.index);
+        if (checkbox.checked) state.selectedListIndexes.add(index);
+        else state.selectedListIndexes.delete(index);
+        updateBulkActions();
+        event.stopPropagation();
+        return;
+      }
+      const row = event.target.closest("tr[data-row-index]");
+      if (!row) return;
+      openDrawer("edit", lists[Number(row.dataset.rowIndex)]);
+    });
+
+    $("#selectAllLists").addEventListener("change", (event) => {
+      $$(".row-select").forEach((input) => {
+        input.checked = event.target.checked;
+        const index = Number(input.dataset.index);
+        if (event.target.checked) state.selectedListIndexes.add(index);
+        else state.selectedListIndexes.delete(index);
+      });
+      updateBulkActions();
+    });
+
+    $("#bulkArchiveBtn").addEventListener("click", () => {
+      state.selectedListIndexes.forEach((index) => {
+        if (lists[index]) lists[index].status = "Архивирован";
+      });
+      state.selectedListIndexes.clear();
+      renderLists();
+      showToast("Выбранные списки архивированы");
+    });
+
+    $("#bulkDeleteBtn").addEventListener("click", () => {
+      [...state.selectedListIndexes].sort((a, b) => b - a).forEach((index) => lists.splice(index, 1));
+      state.selectedListIndexes.clear();
+      renderLists();
+      showToast("Выбранные списки удалены");
+    });
+
+    $("#openGrayResultsBtn").addEventListener("click", openGrayResults);
+    $("#addGrayNumberBtn").addEventListener("click", addGrayNumber);
+    $("#grayNumberInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") addGrayNumber();
+    });
+    $("#grayNumberTableBody").addEventListener("change", (event) => {
+      if (!event.target.classList.contains("gray-number-select")) return;
+      const num = event.target.dataset.number;
+      if (event.target.checked) state.selectedGrayNumbers.add(num);
+      else state.selectedGrayNumbers.delete(num);
+      updateGrayNumberActions();
+    });
+    $("#selectAllGrayNumbers").addEventListener("change", (event) => {
+      $$(".gray-number-select").forEach((input) => {
+        input.checked = event.target.checked;
+        if (event.target.checked) state.selectedGrayNumbers.add(input.dataset.number);
+        else state.selectedGrayNumbers.delete(input.dataset.number);
+      });
+      updateGrayNumberActions();
+    });
+    $("#deleteSelectedGrayNumbersBtn").addEventListener("click", () => {
+      state.grayNumbers = state.grayNumbers.filter((num) => !state.selectedGrayNumbers.has(num));
+      state.selectedGrayNumbers.clear();
+      renderGrayNumbers();
+      showToast("Выбранные номера удалены из серого списка");
+    });
+    $("#uploadGrayMockBtn").addEventListener("click", () => {
+      $("#grayUploadResult").style.display = "grid";
+      ["H441AP777", "P901TM77", "E500KX777"].forEach((num) => {
+        if (!state.grayNumbers.includes(num)) state.grayNumbers.push(num);
+      });
+      renderGrayNumbers();
+      showToast("Файл серого списка обработан");
+    });
+
+    renderLists();
+    renderNumbers();
+    renderGrayNumbers();
+  </script>
+</body>
+</html>
