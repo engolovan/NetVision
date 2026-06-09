@@ -808,6 +808,34 @@
       opacity: 0.9;
     }
 
+    .header-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .search-icon-btn {
+      width: 24px;
+      height: 24px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #9eb3d0;
+      line-height: 1;
+      transition: 0.2s ease;
+    }
+
+    .search-icon-btn:hover,
+    .search-icon-btn.active {
+      color: var(--text);
+      background: var(--blue-soft);
+      border-color: rgba(38, 132, 255, 0.24);
+    }
+
     .plain-check {
       display: inline-flex;
       align-items: center;
@@ -916,8 +944,7 @@
     }
 
     @media (max-width: 1120px) {
-      .trigger-layout,
-      .gray-summary { grid-template-columns: 1fr; }
+      .trigger-layout { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 760px) {
@@ -970,14 +997,6 @@
     </header>
 
     <main class="workspace">
-      <div class="page-header">
-        <div>
-          <div class="eyebrow">Личный кабинет</div>
-          <h1>Управление списками номеров</h1>
-          <p class="lead">Верхние вкладки разделяют подразделы личного кабинета. Серый список вынесен отдельно: он единственный, поэтому без реестра списков, периода действия и выбора камер.</p>
-        </div>
-      </div>
-
       <nav class="account-tabs" aria-label="Разделы личного кабинета">
         <button class="account-tab" id="tab-personal" type="button" data-account-tab="personal">Личные данные</button>
         <button class="account-tab" id="tab-records" type="button" data-account-tab="records">Записи и файлы</button>
@@ -1039,45 +1058,35 @@
               <thead>
                 <tr>
                   <th><input class="mini-check" type="checkbox" id="selectAllLists" aria-label="Выбрать все списки" /></th>
-                  <th>Название <span class="sort-icon">↕</span></th>
-                  <th>Тип списка <span class="sort-icon">↕</span></th>
-                  <th>Статус <span class="sort-icon">↕</span></th>
+                  <th>
+                    <span class="header-tools">
+                      Название <span class="sort-icon">↕</span>
+                      <button class="search-icon-btn" type="button" data-list-filter="query" title="Поиск по названию или номеру" aria-label="Поиск по названию или номеру">🔍</button>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="header-tools">
+                      Тип списка <span class="sort-icon">↕</span>
+                      <button class="search-icon-btn" type="button" data-list-filter="type" title="Фильтр по типу списка" aria-label="Фильтр по типу списка">🔍</button>
+                    </span>
+                  </th>
+                  <th>
+                    <span class="header-tools">
+                      Статус <span class="sort-icon">↕</span>
+                      <button class="search-icon-btn" type="button" data-list-filter="status" title="Фильтр по статусу" aria-label="Фильтр по статусу">🔍</button>
+                    </span>
+                  </th>
                   <th>Номера <span class="sort-icon">↕</span></th>
                   <th>Период действия <span class="sort-icon">↕</span></th>
-                  <th>Камеры <span class="sort-icon">↕</span></th>
+                  <th>
+                    <span class="header-tools">
+                      Камеры <span class="sort-icon">↕</span>
+                      <button class="search-icon-btn" type="button" data-list-filter="camera" title="Фильтр по камерам" aria-label="Фильтр по камерам">🔍</button>
+                    </span>
+                  </th>
                   <th>Создан <span class="sort-icon">↕</span></th>
                   <th>Изменен <span class="sort-icon">↕</span></th>
-                </tr>
-                <tr class="filter-row">
-                  <th></th>
-                  <th><input class="field header-filter" type="search" id="searchInput" placeholder="Название или номер" /></th>
-                  <th>
-                    <select class="select header-filter" id="typeFilter" aria-label="Фильтр по типу">
-                      <option value="all">Все</option>
-                      <option value="Черный">Черный</option>
-                      <option value="Белый">Белый</option>
-                    </select>
-                  </th>
-                  <th>
-                    <select class="select header-filter" id="statusFilter" aria-label="Фильтр по статусу">
-                      <option value="all">Все</option>
-                      <option value="Активен">Активен</option>
-                      <option value="Запланирован">Запланирован</option>
-                      <option value="Истек">Истек</option>
-                      <option value="Архивирован">Архивирован</option>
-                    </select>
-                  </th>
-                  <th></th>
-                  <th></th>
-                  <th>
-                    <select class="select header-filter" id="cameraFilter" aria-label="Фильтр по камерам">
-                      <option value="all">Все</option>
-                      <option value="Камеры выбраны">Камеры выбраны</option>
-                      <option value="Без ограничений">Без ограничений</option>
-                    </select>
-                  </th>
-                  <th></th>
-                  <th></th>
+                  <th>Результаты</th>
                 </tr>
               </thead>
               <tbody id="listsTable"></tbody>
@@ -1096,22 +1105,6 @@
             </div>
             <button class="btn primary" type="button" id="openGrayResultsBtn">Посмотреть результаты</button>
           </div>
-
-          <div class="gray-summary">
-            <div class="gray-metric">
-              <strong id="grayNumbersCount">0</strong>
-              <span>номеров в сером списке</span>
-            </div>
-            <div class="gray-metric">
-              <strong>Всегда активен</strong>
-              <span>без настройки периода работы</span>
-            </div>
-            <div class="gray-metric">
-              <strong>Все камеры</strong>
-              <span>без отдельного выбора камер</span>
-            </div>
-          </div>
-
           <div class="gray-content">
             <div class="hint">Серый список существует в одном экземпляре. Работа с номерами аналогична черным и белым спискам: можно добавить номер вручную, удалить выбранные строки или выполнить пакетную загрузку.</div>
 
@@ -1129,8 +1122,6 @@
                     <tr>
                       <th><input class="mini-check" type="checkbox" id="selectAllGrayNumbers" aria-label="Выбрать все номера серого списка" /></th>
                       <th>Номер</th>
-                      <th>Источник</th>
-                      <th>Добавлен</th>
                     </tr>
                   </thead>
                   <tbody id="grayNumberTableBody"></tbody>
@@ -1206,7 +1197,6 @@
               <tr>
                 <th><input class="mini-check" type="checkbox" id="selectAllNumbers" aria-label="Выбрать все номера" /></th>
                 <th>Номер</th>
-                <th>Источник</th>
               </tr>
             </thead>
             <tbody id="numberTableBody"></tbody>
@@ -1370,6 +1360,12 @@
       numbers: ["A123BC77", "M778OO197"],
       selectedNumbers: new Set(),
       selectedListIndexes: new Set(),
+      listFilters: {
+        query: "",
+        type: "all",
+        status: "all",
+        camera: "all"
+      },
       cameraSelected: true,
       grayNumbers: ["C548PX77", "O777OO97", "A001AA197"],
       selectedGrayNumbers: new Set()
@@ -1397,10 +1393,10 @@
     }
 
     function renderLists() {
-      const query = $("#searchInput").value.trim().toLowerCase();
-      const type = $("#typeFilter").value;
-      const status = $("#statusFilter").value;
-      const camera = $("#cameraFilter").value;
+      const query = state.listFilters.query.trim().toLowerCase();
+      const type = state.listFilters.type;
+      const status = state.listFilters.status;
+      const camera = state.listFilters.camera;
       const filtered = lists
         .map((item, sourceIndex) => ({ item, sourceIndex }))
         .filter(({ item }) => {
@@ -1422,11 +1418,59 @@
           <td>${item.cameras}</td>
           <td>${item.created}</td>
           <td>${item.updated}</td>
+          <td><button class="btn small list-results-btn" type="button" data-results-index="${sourceIndex}">Посмотреть</button></td>
         </tr>
       `).join("");
 
       $("#emptyState").classList.toggle("visible", filtered.length === 0);
+      updateHeaderSearchButtons();
       updateBulkActions();
+    }
+
+    function updateHeaderSearchButtons() {
+      $$("[data-list-filter]").forEach((button) => {
+        const filterName = button.dataset.listFilter;
+        const value = state.listFilters[filterName];
+        button.classList.toggle("active", Boolean(value) && value !== "all");
+      });
+    }
+
+    function setListFilter(filterName) {
+      const prompts = {
+        query: ["Поиск по названию или номеру", state.listFilters.query],
+        type: ["Тип списка: Черный, Белый или Все", state.listFilters.type === "all" ? "" : state.listFilters.type],
+        status: ["Статус: Активен, Запланирован, Истек, Архивирован или Все", state.listFilters.status === "all" ? "" : state.listFilters.status],
+        camera: ["Камеры: Камеры выбраны, Без ограничений или Все", state.listFilters.camera === "all" ? "" : state.listFilters.camera]
+      };
+      const [message, currentValue] = prompts[filterName];
+      const value = window.prompt(message, currentValue);
+      if (value === null) return;
+
+      const normalized = value.trim();
+      if (filterName === "query") {
+        state.listFilters.query = normalized;
+        renderLists();
+        return;
+      }
+
+      if (!normalized || normalized.toLowerCase() === "все") {
+        state.listFilters[filterName] = "all";
+        renderLists();
+        return;
+      }
+
+      const allowedValues = {
+        type: ["Черный", "Белый"],
+        status: ["Активен", "Запланирован", "Истек", "Архивирован"],
+        camera: ["Камеры выбраны", "Без ограничений"]
+      };
+      const matched = allowedValues[filterName].find((item) => item.toLowerCase() === normalized.toLowerCase());
+      if (!matched) {
+        showToast("Значение фильтра не найдено");
+        return;
+      }
+      state.listFilters[filterName] = matched;
+      renderLists();
     }
 
     function updateBulkActions() {
@@ -1505,7 +1549,6 @@
         <tr>
           <td><input class="mini-check number-select" type="checkbox" data-number="${num}" ${state.selectedNumbers.has(num) ? "checked" : ""} aria-label="Выбрать номер ${num}" /></td>
           <td><strong>${num}</strong></td>
-          <td><span class="muted">${num.startsWith("H") || num.startsWith("P") || num.startsWith("E") ? "Импорт" : "Ручной ввод"}</span></td>
         </tr>
       `).join("");
       updateNumberActions();
@@ -1621,15 +1664,12 @@
     function closeMap() { $("#mapModal").classList.remove("open"); }
 
     function renderGrayNumbers() {
-      $("#grayNumberTableBody").innerHTML = state.grayNumbers.map((num, index) => `
+      $("#grayNumberTableBody").innerHTML = state.grayNumbers.map((num) => `
         <tr>
           <td><input class="mini-check gray-number-select" type="checkbox" data-number="${num}" ${state.selectedGrayNumbers.has(num) ? "checked" : ""} aria-label="Выбрать номер ${num}" /></td>
           <td><strong>${num}</strong></td>
-          <td><span class="muted">${index > 1 ? "Импорт" : "Ручной ввод"}</span></td>
-          <td>${index > 1 ? "05.06.2026" : "04.06.2026"}</td>
         </tr>
       `).join("");
-      $("#grayNumbersCount").textContent = state.grayNumbers.length;
       updateGrayNumberActions();
     }
 
@@ -1663,8 +1703,8 @@
       tab.addEventListener("click", () => activateAccountTab(tab.dataset.accountTab));
     });
 
-    ["#searchInput", "#typeFilter", "#statusFilter", "#cameraFilter"].forEach((selector) => {
-      $(selector).addEventListener("input", renderLists);
+    $$("[data-list-filter]").forEach((button) => {
+      button.addEventListener("click", () => setListFilter(button.dataset.listFilter));
     });
 
     $("#openCreateBtn").addEventListener("click", () => openDrawer("create"));
@@ -1736,6 +1776,12 @@
         if (checkbox.checked) state.selectedListIndexes.add(index);
         else state.selectedListIndexes.delete(index);
         updateBulkActions();
+        event.stopPropagation();
+        return;
+      }
+      const resultsButton = event.target.closest(".list-results-btn");
+      if (resultsButton) {
+        openListResults(lists[Number(resultsButton.dataset.resultsIndex)]);
         event.stopPropagation();
         return;
       }
