@@ -41,9 +41,52 @@
 
     #map { width: 100%; height: 100%; z-index: 1; }
 
+    .map-top-panel {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 12;
+      min-height: 58px;
+      border-radius: 12px;
+      background: rgba(42, 47, 54, 0.94);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      overflow: hidden;
+      color: #ffffff;
+      backdrop-filter: blur(10px);
+    }
+    .map-top-search {
+      min-width: 0;
+      padding: 0 24px;
+      font-size: 21px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .map-top-nav {
+      height: 100%;
+      display: flex;
+      align-items: stretch;
+    }
+    .map-top-nav-item {
+      min-width: 80px;
+      padding: 0 22px;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
     .search-badges {
       position: absolute;
-      top: 16px;
+      top: 86px;
       left: 16px;
       z-index: 10;
       display: flex;
@@ -629,6 +672,10 @@
       .app-container { flex-direction: column; height: auto; }
       .side-panel { width: 100%; max-height: none; }
       .map-wrapper { min-height: 400px; }
+      .map-top-panel { min-height: 52px; grid-template-columns: minmax(110px, 1fr) auto; }
+      .map-top-search { padding: 0 16px; font-size: 17px; }
+      .map-top-nav-item { min-width: auto; padding: 0 12px; font-size: 15px; }
+      .search-badges { top: 78px; }
       .filter-grid { grid-template-columns: 1fr; }
       .search-name-row { flex-direction: column; }
       .header-actions { width: 100%; }
@@ -641,6 +688,14 @@
 <div class="app-container" id="appContainer">
   <div class="map-wrapper" id="mapWrapper">
     <div id="map"></div>
+    <div class="map-top-panel" aria-label="Панель навигации карты">
+      <div class="map-top-search">Поиск...</div>
+      <div class="map-top-nav" role="navigation" aria-label="Разделы карты">
+        <div class="map-top-nav-item">Тэг</div>
+        <div class="map-top-nav-item">Иерархия</div>
+        <div class="map-top-nav-item">Управляемое</div>
+      </div>
+    </div>
     <div class="search-badges" id="searchBadges">
       <div class="search-badge active">
         <span class="badge-status done"><i class="fas fa-check"></i></span>
