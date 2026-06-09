@@ -775,6 +775,19 @@
       align-items: center;
     }
 
+    .table-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 20px 18px;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .section-card .table-actions {
+      padding: 0;
+      border-top: 0;
+    }
+
     .filter-row th {
       padding: 10px 12px;
       background: rgba(7, 17, 31, 0.52);
@@ -1050,7 +1063,6 @@
             <div class="bulk-actions">
               <button class="btn primary" type="button" id="openCreateBtn">Создать список</button>
               <button class="btn" type="button" id="bulkArchiveBtn" disabled>Архивировать выбранные</button>
-              <button class="btn danger" type="button" id="bulkDeleteBtn" disabled>Удалить выбранные</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -1092,6 +1104,9 @@
               <tbody id="listsTable"></tbody>
             </table>
           </div>
+          <div class="table-actions">
+            <button class="btn danger" type="button" id="bulkDeleteBtn" disabled>Удалить выбранное</button>
+          </div>
           <div class="empty-state" id="emptyState">Списки не найдены. Измените фильтры или создайте новый список.</div>
         </div>
       </section>
@@ -1113,7 +1128,6 @@
               <div class="gray-toolbar">
                 <input class="field" id="grayNumberInput" placeholder="Введите номер, например A123BC77" />
                 <button class="btn primary" id="addGrayNumberBtn" type="button">Добавить номер</button>
-                <button class="btn danger" id="deleteSelectedGrayNumbersBtn" type="button" disabled>Удалить выбранные</button>
               </div>
               <div class="error-box" id="grayErrors"></div>
               <div class="number-table-wrap">
@@ -1126,6 +1140,9 @@
                   </thead>
                   <tbody id="grayNumberTableBody"></tbody>
                 </table>
+              </div>
+              <div class="table-actions">
+                <button class="btn danger" id="deleteSelectedGrayNumbersBtn" type="button" disabled>Удалить выбранное</button>
               </div>
             </div>
 
@@ -1202,8 +1219,8 @@
             <tbody id="numberTableBody"></tbody>
           </table>
         </div>
-        <div style="display:flex; justify-content:flex-end;">
-          <button class="btn danger small" id="deleteSelectedNumbersBtn" type="button" disabled>Удалить выбранные</button>
+        <div class="table-actions">
+          <button class="btn danger small" id="deleteSelectedNumbersBtn" type="button" disabled>Удалить выбранное</button>
         </div>
       </div>
 
