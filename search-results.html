@@ -135,6 +135,11 @@
       gap: 12px;
       align-items: flex-start;
     }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
     .search-name {
       font-weight: 600;
       font-size: 18px;
@@ -161,7 +166,8 @@
     }
     .search-name-sub .dot.done { background: #22c55e; }
 
-    .filter-toggle {
+    .filter-toggle,
+    .report-toggle {
       background: #1e2f4a;
       border: 1px solid #3b82f6;
       color: #ecf2ff;
@@ -177,7 +183,8 @@
       transition: 0.2s;
       flex-shrink: 0;
     }
-    .filter-toggle:hover { background: #243b60; }
+    .filter-toggle:hover,
+    .report-toggle:hover { background: #243b60; }
     .filter-toggle .filter-count {
       width: 18px;
       height: 18px;
@@ -189,8 +196,13 @@
       font-size: 11px;
       font-weight: 600;
     }
+    .report-toggle {
+      background: #14243c;
+      border-color: #2e3f58;
+    }
 
-    .filters-panel {
+    .filters-panel,
+    .reports-panel {
       display: none;
       margin-top: 14px;
       padding: 14px;
@@ -199,7 +211,9 @@
       border-radius: 16px;
     }
     .filters-panel.active { display: block; }
-    .filters-panel-title {
+    .reports-panel.active { display: block; }
+    .filters-panel-title,
+    .reports-panel-title {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -209,30 +223,53 @@
       font-weight: 600;
       margin-bottom: 12px;
     }
-    .filter-enable {
-      color: #90a9d0;
-      font-size: 12px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
     .filter-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
     .filter-field.full { grid-column: 1 / -1; }
-    .filter-field label {
+    .filter-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+    .filter-label-row label,
+    .report-field label {
       color: #7c95b5;
       font-size: 11px;
       font-weight: 500;
       display: block;
-      margin-bottom: 5px;
+    }
+    .sort-button {
+      width: 26px;
+      height: 24px;
+      border-radius: 8px;
+      border: 1px solid #2e3f58;
+      background: #18243a;
+      color: #7c95b5;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      transition: 0.2s;
+    }
+    .sort-button:hover {
+      color: #cbd9f0;
+      border-color: #3b82f6;
+    }
+    .sort-button.active {
+      background: #1e2f4a;
+      border-color: #3b82f6;
+      color: #5f9eff;
     }
     .filter-field input,
-    .filter-field select {
+    .filter-field select,
+    .report-field input,
+    .report-field select {
       width: 100%;
       background: #1e2a3f;
       border: 1.5px solid #2e3f58;
@@ -244,13 +281,17 @@
       outline: none;
     }
     .filter-field input:focus,
-    .filter-field select:focus { border-color: #3b82f6; }
-    .filter-actions {
+    .filter-field select:focus,
+    .report-field input:focus,
+    .report-field select:focus { border-color: #3b82f6; }
+    .filter-actions,
+    .report-actions {
       display: flex;
       gap: 8px;
       margin-top: 12px;
     }
-    .filter-action {
+    .filter-action,
+    .report-action {
       flex: 1;
       border-radius: 10px;
       padding: 9px 10px;
@@ -261,11 +302,44 @@
       font-size: 12px;
       cursor: pointer;
     }
-    .filter-action.primary {
+    .filter-action.primary,
+    .report-action.primary {
       background: #2563eb;
       border-color: #3b82f6;
       color: white;
       font-weight: 600;
+    }
+    .report-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .report-save-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .report-save-option {
+      border: 1px solid #2e3f58;
+      background: #18243a;
+      color: #cbd9f0;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .report-field .report-save-option {
+      color: #cbd9f0;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      margin: 0;
+    }
+    .report-save-option input {
+      width: auto;
+      accent-color: #3b82f6;
     }
 
     .panel-tabs {
@@ -512,28 +586,83 @@
             <span>3 маршрута</span>
           </div>
         </div>
-        <button class="filter-toggle" id="filterToggle" type="button" onclick="toggleFilters()">
-          <i class="fas fa-filter"></i>
-          Фильтры
-          <span class="filter-count">8</span>
-        </button>
+        <div class="header-actions">
+          <button class="report-toggle" id="reportToggle" type="button" onclick="toggleReports()">
+            <i class="fas fa-file-alt"></i>
+            Отчеты
+          </button>
+          <button class="filter-toggle" id="filterToggle" type="button" onclick="toggleFilters()">
+            <i class="fas fa-filter"></i>
+            Фильтры
+            <span class="filter-count">7</span>
+          </button>
+        </div>
       </div>
 
       <div class="filters-panel" id="filtersPanel">
         <div class="filters-panel-title">
           <span><i class="fas fa-sliders-h"></i> Фильтрация результатов</span>
-          <label class="filter-enable">
-            <input type="checkbox" checked>
-            применять
-          </label>
         </div>
         <div class="filter-grid">
+          <div class="filter-field">
+            <div class="filter-label-row">
+              <label for="vehicleTypeFilter">Тип ТС</label>
+              <button class="sort-button" type="button" data-sort-key="vehicleType" data-sort-title="Тип ТС" onclick="setEventSort(this)" title="Сгруппировать по типу ТС">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
+            <select id="vehicleTypeFilter">
+              <option>Любой</option>
+              <option selected>Легковой</option>
+              <option>Грузовой</option>
+              <option>Автобус</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <div class="filter-label-row">
+              <label for="brandFilter">Марка</label>
+              <button class="sort-button" type="button" data-sort-key="brand" data-sort-title="Марка" onclick="setEventSort(this)" title="Сгруппировать по марке">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
+            <input id="brandFilter" type="text" value="Audi">
+          </div>
+          <div class="filter-field">
+            <div class="filter-label-row">
+              <label for="modelFilter">Модель</label>
+              <button class="sort-button" type="button" data-sort-key="model" data-sort-title="Модель" onclick="setEventSort(this)" title="Сгруппировать по модели">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
+            <input id="modelFilter" type="text" value="A6">
+          </div>
+          <div class="filter-field">
+            <div class="filter-label-row">
+              <label for="colorFilter">Цвет</label>
+              <button class="sort-button" type="button" data-sort-key="color" data-sort-title="Цвет" onclick="setEventSort(this)" title="Сгруппировать по цвету">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
+            <select id="colorFilter">
+              <option>Любой</option>
+              <option selected>Черный</option>
+              <option>Белый</option>
+              <option>Серый</option>
+            </select>
+          </div>
           <div class="filter-field full">
-            <label for="periodFilter">Период времени</label>
+            <div class="filter-label-row">
+              <label for="periodFilter">Период времени</label>
+            </div>
             <input id="periodFilter" type="text" value="09.05.2026 00:00 - 10.05.2026 23:59">
           </div>
           <div class="filter-field">
-            <label for="countryFilter">Страна</label>
+            <div class="filter-label-row">
+              <label for="countryFilter">Страна</label>
+              <button class="sort-button" type="button" data-sort-key="country" data-sort-title="Страна" onclick="setEventSort(this)" title="Сгруппировать по стране">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
             <select id="countryFilter">
               <option>Любая</option>
               <option selected>Россия</option>
@@ -542,7 +671,12 @@
             </select>
           </div>
           <div class="filter-field">
-            <label for="plateTypeFilter">Тип номера</label>
+            <div class="filter-label-row">
+              <label for="plateTypeFilter">Тип номера</label>
+              <button class="sort-button" type="button" data-sort-key="plateType" data-sort-title="Тип номера" onclick="setEventSort(this)" title="Сгруппировать по типу номера">
+                <i class="fas fa-sort-alpha-down"></i>
+              </button>
+            </div>
             <select id="plateTypeFilter">
               <option>Любой</option>
               <option selected>Гражданский</option>
@@ -550,46 +684,47 @@
               <option>Военный</option>
             </select>
           </div>
-          <div class="filter-field">
-            <label for="brandFilter">Марка</label>
-            <input id="brandFilter" type="text" value="Audi">
-          </div>
-          <div class="filter-field">
-            <label for="modelFilter">Модель</label>
-            <input id="modelFilter" type="text" value="A6">
-          </div>
-          <div class="filter-field">
-            <label for="colorFilter">Цвет</label>
-            <select id="colorFilter">
-              <option>Любой</option>
-              <option selected>Черный</option>
-              <option>Белый</option>
-              <option>Серый</option>
-            </select>
-          </div>
-          <div class="filter-field">
-            <label for="vehicleTypeFilter">Тип ТС</label>
-            <select id="vehicleTypeFilter">
-              <option>Любой</option>
-              <option selected>Легковой</option>
-              <option>Грузовой</option>
-              <option>Автобус</option>
-            </select>
-          </div>
-          <div class="filter-field full">
-            <label for="bodyTypeFilter">Тип кузова</label>
-            <select id="bodyTypeFilter">
-              <option>Любой</option>
-              <option selected>Седан</option>
-              <option>Универсал</option>
-              <option>Внедорожник</option>
-              <option>Хэтчбек</option>
-            </select>
-          </div>
         </div>
         <div class="filter-actions">
           <button class="filter-action" type="button">Сбросить</button>
           <button class="filter-action primary" type="button">Показать результаты</button>
+        </div>
+      </div>
+
+      <div class="reports-panel" id="reportsPanel">
+        <div class="reports-panel-title">
+          <span><i class="fas fa-file-export"></i> Создание отчета</span>
+        </div>
+        <div class="report-grid">
+          <div class="report-field">
+            <label for="reportName">Наименование отчета</label>
+            <input id="reportName" type="text" value="Отчет Поиск ТС_10.04.26_11.11">
+          </div>
+          <div class="report-field">
+            <label for="reportFileType">Тип файла</label>
+            <select id="reportFileType">
+              <option>Эксель</option>
+              <option>Ворд</option>
+              <option>PDF</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <label>Куда сохранять</label>
+            <div class="report-save-options">
+              <label class="report-save-option">
+                <input type="radio" name="reportSaveTo" checked>
+                <span>Личный кабинет</span>
+              </label>
+              <label class="report-save-option">
+                <input type="radio" name="reportSaveTo">
+                <span>На устройство</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="report-actions">
+          <button class="report-action" type="button">Отмена</button>
+          <button class="report-action primary" type="button">Сформировать</button>
         </div>
       </div>
     </div>
@@ -605,52 +740,7 @@
 
     <div class="panel-content" id="panelContent">
       <div id="view-events">
-        <div class="day-group">
-          <div class="day-label"><i class="fas fa-calendar-day"></i> 10 мая, пятница</div>
-          <div class="event-card">
-            <div class="event-icon"><i class="fas fa-car"></i></div>
-            <div class="event-info">
-              <div class="event-type">Обнаружен субъект</div>
-              <div class="event-location">Объект по пр. Ленина, 10</div>
-              <div class="event-time"><i class="far fa-clock"></i> 16:16:07</div>
-            </div>
-          </div>
-          <div class="event-card">
-            <div class="event-icon"><i class="fas fa-car"></i></div>
-            <div class="event-info">
-              <div class="event-type">Распознан номер</div>
-              <div class="event-location">Машина по ул. Чапаевская, 112а</div>
-              <div class="event-time"><i class="far fa-clock"></i> 10:30:45</div>
-            </div>
-          </div>
-        </div>
-        <div class="day-group">
-          <div class="day-label"><i class="fas fa-calendar-day"></i> 9 мая, четверг</div>
-          <div class="event-card">
-            <div class="event-icon"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i></div>
-            <div class="event-info">
-              <div class="event-type">Стерильная зона</div>
-              <div class="event-location">Движение ТС в запрещенной зоне</div>
-              <div class="event-time"><i class="far fa-clock"></i> 14:55:22</div>
-            </div>
-          </div>
-          <div class="event-card">
-            <div class="event-icon"><i class="fas fa-parking"></i></div>
-            <div class="event-info">
-              <div class="event-type">Остановка ТС</div>
-              <div class="event-location">Парковка у остановки</div>
-              <div class="event-time"><i class="far fa-clock"></i> 07:20:55</div>
-            </div>
-          </div>
-          <div class="event-card">
-            <div class="event-icon"><i class="fas fa-car-crash" style="color:#f59e0b;"></i></div>
-            <div class="event-info">
-              <div class="event-type">ДТП</div>
-              <div class="event-location">Слишком близкое следование</div>
-              <div class="event-time"><i class="far fa-clock"></i> 07:20:55</div>
-            </div>
-          </div>
-        </div>
+        <div id="eventsGroups"></div>
       </div>
 
       <div id="view-routes" style="display:none;">
@@ -811,6 +901,81 @@
     }
   ];
 
+  const events = [
+    {
+      date: '10 мая, пятница',
+      type: 'Обнаружен субъект',
+      location: 'Объект по пр. Ленина, 10',
+      time: '16:16:07',
+      icon: 'fas fa-car',
+      iconColor: '',
+      country: 'Россия',
+      plateType: 'Гражданский',
+      vehicleType: 'Легковой',
+      brand: 'Audi',
+      model: 'A6',
+      color: 'Черный'
+    },
+    {
+      date: '10 мая, пятница',
+      type: 'Распознан номер',
+      location: 'Машина по ул. Чапаевская, 112а',
+      time: '10:30:45',
+      icon: 'fas fa-car',
+      iconColor: '',
+      country: 'Россия',
+      plateType: 'Гражданский',
+      vehicleType: 'Легковой',
+      brand: 'Audi',
+      model: 'A6',
+      color: 'Черный'
+    },
+    {
+      date: '9 мая, четверг',
+      type: 'Стерильная зона',
+      location: 'Движение ТС в запрещенной зоне',
+      time: '14:55:22',
+      icon: 'fas fa-exclamation-triangle',
+      iconColor: '#ef4444',
+      country: 'Россия',
+      plateType: 'Гражданский',
+      vehicleType: 'Легковой',
+      brand: 'Audi',
+      model: 'A6',
+      color: 'Черный'
+    },
+    {
+      date: '9 мая, четверг',
+      type: 'Остановка ТС',
+      location: 'Парковка у остановки',
+      time: '07:20:55',
+      icon: 'fas fa-parking',
+      iconColor: '',
+      country: 'Россия',
+      plateType: 'Такси',
+      vehicleType: 'Легковой',
+      brand: 'Kia',
+      model: 'Rio',
+      color: 'Белый'
+    },
+    {
+      date: '9 мая, четверг',
+      type: 'ДТП',
+      location: 'Слишком близкое следование',
+      time: '07:20:55',
+      icon: 'fas fa-car-crash',
+      iconColor: '#f59e0b',
+      country: 'Казахстан',
+      plateType: 'Гражданский',
+      vehicleType: 'Грузовой',
+      brand: 'Volvo',
+      model: 'FH',
+      color: 'Серый'
+    }
+  ];
+
+  let activeSort = null;
+
   function clearMapLayers() {
     currentPointsLayer.clearLayers();
     currentRouteLayer.clearLayers();
@@ -866,6 +1031,59 @@
     document.getElementById('filtersPanel').classList.toggle('active');
   }
 
+  function toggleReports() {
+    document.getElementById('reportsPanel').classList.toggle('active');
+  }
+
+  function groupEvents(key) {
+    return events.reduce((groups, event) => {
+      const groupName = event[key] || 'Не указано';
+      if (!groups.has(groupName)) {
+        groups.set(groupName, []);
+      }
+      groups.get(groupName).push(event);
+      return groups;
+    }, new Map());
+  }
+
+  function renderEvents() {
+    const container = document.getElementById('eventsGroups');
+    const groupKey = activeSort ? activeSort.key : 'date';
+    const groupTitle = activeSort ? activeSort.title : 'Дата';
+    const groupIcon = activeSort ? 'fas fa-layer-group' : 'fas fa-calendar-day';
+    const groups = groupEvents(groupKey);
+
+    container.innerHTML = Array.from(groups.entries()).map(([name, groupItems]) => `
+      <div class="day-group">
+        <div class="day-label">
+          <i class="${groupIcon}"></i>
+          ${name}
+          <span style="font-size:11px;color:#5f9eff;">${groupTitle}</span>
+        </div>
+        ${groupItems.map(event => `
+          <div class="event-card">
+            <div class="event-icon"><i class="${event.icon}" style="${event.iconColor ? `color:${event.iconColor};` : ''}"></i></div>
+            <div class="event-info">
+              <div class="event-type">${event.type}</div>
+              <div class="event-location">${event.location}</div>
+              <div class="event-time"><i class="far fa-clock"></i> ${event.time}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function setEventSort(btn) {
+    document.querySelectorAll('.sort-button').forEach(item => item.classList.remove('active'));
+    btn.classList.add('active');
+    activeSort = {
+      key: btn.dataset.sortKey,
+      title: btn.dataset.sortTitle
+    };
+    renderEvents();
+  }
+
   function activateRoute(routeIndex) {
     document.querySelectorAll('.route-group-card').forEach(item => {
       item.classList.toggle('active', Number(item.dataset.route || 0) === routeIndex);
@@ -885,6 +1103,7 @@
   }
 
   showPointsMap();
+  renderEvents();
   window.map = map;
 
   function switchView(view, btn) {
@@ -907,7 +1126,9 @@
 
   window.switchView = switchView;
   window.toggleFilters = toggleFilters;
+  window.toggleReports = toggleReports;
   window.toggleRoute = toggleRoute;
+  window.setEventSort = setEventSort;
 </script>
 </body>
 </html>
