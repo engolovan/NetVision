@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>NetVision · Поиск ТС</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      align-items: center;
+      background: #0c111d;
+      display: flex;
+      font-family: "Inter", sans-serif;
+      justify-content: center;
+      margin: 0;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app-container {
+      display: flex;
+      gap: 16px;
+      height: 95vh;
+      max-width: 1600px;
+      transition: gap 0.25s ease;
+      width: 100%;
+    }
+
+    .search-panel {
+      background: #131a2a;
+      border: 1px solid #253040;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+      transition: width 0.25s ease, padding 0.25s ease, border-radius 0.25s ease;
+      width: 460px;
+    }
+
+    .search-panel h2 {
+      align-items: center;
+      color: #eef4ff;
+      display: flex;
+      font-size: 20px;
+      font-weight: 600;
+      gap: 10px;
+      margin-bottom: 16px;
+      white-space: nowrap;
+    }
+
+    .search-panel h2 i {
+      color: #3b82f6;
+    }
+
+    .panel-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .collapsed-search-rail {
+      align-items: center;
+      color: #b7cef0;
+      cursor: pointer;
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .collapsed-search-rail i {
+      align-items: center;
+      background: #1e2a3f;
+      border: 1px solid #2e3f58;
+      border-radius: 14px;
+      color: #5f9eff;
+      display: flex;
+      font-size: 20px;
+      height: 44px;
+      justify-content: center;
+      width: 44px;
+    }
+
+    .collapsed-search-rail span {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      line-height: 1.25;
+      writing-mode: vertical-rl;
+    }
+
+    .app-container.search-running .search-panel {
+      border-radius: 20px;
+      overflow: hidden;
+      padding: 12px;
+      width: 72px;
+    }
+
+    .app-container.search-running .panel-body {
+      display: none;
+    }
+
+    .app-container.search-running .collapsed-search-rail {
+      display: flex;
+    }
+
+    .divider {
+      background: #23324a;
+      height: 1px;
+      margin: 20px 0 16px;
+      opacity: 0.6;
+    }
+
+    .title-row {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+    }
+
+    .title-row .field-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .favorite-btn {
+      align-items: center;
+      background: #1e2b40;
+      border: 1.5px solid #3b5270;
+      border-radius: 12px;
+      color: #859fc7;
+      cursor: pointer;
+      display: flex;
+      font-size: 22px;
+      height: 44px;
+      justify-content: center;
+      margin-top: 22px;
+      transition: 0.2s;
+      width: 44px;
+    }
+
+    .favorite-btn:hover,
+    .favorite-btn.active {
+      background: #2e3f59;
+      border-color: #fbbf24;
+      color: #fbbf24;
+    }
+
+    .collapsible-section {
+      margin-bottom: 8px;
+    }
+
+    .section-header {
+      align-items: center;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0 8px;
+      user-select: none;
+    }
+
+    .section-title {
+      align-items: center;
+      color: #b0c6e5;
+      display: flex;
+      font-size: 14px;
+      font-weight: 600;
+      gap: 8px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .section-title i {
+      color: #4b7bec;
+      font-size: 14px;
+      width: 18px;
+    }
+
+    .section-toggle {
+      color: #7c95b5;
+      font-size: 14px;
+      transition: transform 0.2s;
+    }
+
+    .collapsible-section.collapsed .section-toggle {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      max-height: 900px;
+      opacity: 1;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.2s;
+    }
+
+    .collapsible-section.collapsed .section-content {
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .field-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      color: #7c95b5;
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    input,
+    select {
+      background: #1e2a3f;
+      border: 1.5px solid #2e3f58;
+      border-radius: 12px;
+      color: #ecf2ff;
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      outline: none;
+      padding: 10px 12px;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    input:focus,
+    select:focus {
+      background: #1f2e46;
+      border-color: #3b82f6;
+    }
+
+    .checkbox-row {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .checkbox-row input,
+    .intersection-toggle input {
+      accent-color: #3b82f6;
+      height: 18px;
+      width: 18px;
+    }
+
+    .checkbox-row label {
+      color: #b7cef0;
+      font-weight: 400;
+      margin-bottom: 0;
+    }
+
+    .intersection-toggle {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 10px 0;
+    }
+
+    .intersection-toggle label {
+      color: #b7cef0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 0;
+    }
+
+    .toggle-hint {
+      color: #7c95b5;
+      font-size: 11px;
+      margin-left: auto;
+    }
+
+    .area-blocks {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .area-block {
+      background: #1a2338;
+      border: 1px solid #2e3f58;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: opacity 0.2s;
+    }
+
+    .area-block.removed {
+      display: none;
+    }
+
+    .area-header {
+      align-items: center;
+      background: #1e2a42;
+      border-bottom: 1px solid #2e3f58;
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+    }
+
+    .area-color {
+      border-radius: 50%;
+      height: 16px;
+      width: 16px;
+    }
+
+    .area-color.red {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef444480;
+    }
+
+    .area-color.green {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e80;
+    }
+
+    .area-color.blue {
+      background: #3b82f6;
+      box-shadow: 0 0 10px #3b82f680;
+    }
+
+    .area-title {
+      color: #eef4ff;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .area-remove {
+      align-items: center;
+      background: transparent;
+      border: 1px solid #3e5a7c;
+      border-radius: 8px;
+      color: #7c95b5;
+      cursor: pointer;
+      display: flex;
+      font-size: 14px;
+      height: 28px;
+      justify-content: center;
+      margin-left: auto;
+      transition: 0.15s;
+      width: 28px;
+    }
+
+    .area-remove:hover {
+      background: #3a1f1f;
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .area-content {
+      padding: 16px;
+    }
+
+    .period-input {
+      background: #0f1a26;
+      border: 1.5px solid #2e3f58;
+      border-radius: 12px;
+      color: #ecf2ff;
+      font-size: 12px;
+      padding: 10px 12px;
+      width: 100%;
+    }
+
+    .ts-types-compact {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .ts-chip {
+      align-items: center;
+      background: #1e2b40;
+      border: 1px solid #314a67;
+      border-radius: 30px;
+      color: #cbd9f0;
+      cursor: pointer;
+      display: flex;
+      font-size: 12px;
+      font-weight: 500;
+      gap: 6px;
+      padding: 8px 14px;
+      transition: 0.15s;
+    }
+
+    .ts-chip i {
+      color: #90a9d0;
+      font-size: 14px;
+    }
+
+    .ts-chip:hover {
+      background: #27405e;
+      border-color: #3b82f6;
+    }
+
+    .ts-chip.active {
+      background: #1e4a8b;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .ts-chip.active i {
+      color: white;
+    }
+
+    .color-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .color-chip {
+      border: 2px solid #2e4a6a;
+      border-radius: 50%;
+      cursor: pointer;
+      height: 32px;
+      position: relative;
+      transition: 0.1s;
+      width: 32px;
+    }
+
+    .color-chip.hatched {
+      background: repeating-linear-gradient(45deg, #3a4e6b 0, #3a4e6b 4px, #1f2b3c 4px, #1f2b3c 8px);
+    }
+
+    .color-chip:hover {
+      transform: scale(1.1);
+    }
+
+    .color-chip.selected {
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px #3b82f6;
+    }
+
+    .color-chip[data-tooltip]:hover::after {
+      background: #1e2a3f;
+      border: 1px solid #3b5270;
+      border-radius: 8px;
+      bottom: -30px;
+      color: #ecf2ff;
+      content: attr(data-tooltip);
+      font-size: 11px;
+      left: 50%;
+      padding: 4px 10px;
+      pointer-events: none;
+      position: absolute;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .add-area-btn {
+      align-items: center;
+      background: #1f2c41;
+      border: 1.5px dashed #3e5a7c;
+      border-radius: 40px;
+      color: #b7cef0;
+      cursor: pointer;
+      display: flex;
+      font-size: 14px;
+      font-weight: 500;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 20px;
+      padding: 14px 18px;
+      transition: 0.15s;
+      width: 100%;
+    }
+
+    .add-area-btn i {
+      color: #5f9eff;
+    }
+
+    .add-area-btn:hover {
+      background: #273c5a;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .panel-footer {
+      border-top: 1px solid #23324a;
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .btn-apply {
+      align-items: center;
+      background: #2563eb;
+      border: 1px solid #3b82f6;
+      border-radius: 40px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      font-size: 15px;
+      font-weight: 600;
+      gap: 10px;
+      justify-content: center;
+      padding: 14px 20px;
+      transition: 0.15s;
+      width: 100%;
+    }
+
+    .btn-apply:hover {
+      background: #1d4ed8;
+    }
+
+    .map-column {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .map-search-toolbar {
+      align-items: center;
+      background: #111723;
+      border: 1px solid #273247;
+      border-radius: 13px;
+      box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.8);
+      display: inline-flex;
+      flex-wrap: wrap;
+      min-height: 46px;
+      overflow: hidden;
+      width: fit-content;
+      z-index: 12;
+    }
+
+    .toolbar-tab {
+      align-items: center;
+      background: #242a34;
+      border: 0;
+      border-right: 1px solid #3b414c;
+      color: #eef4ff;
+      cursor: pointer;
+      display: flex;
+      font-family: "Inter", sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 18px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .toolbar-tab:last-child {
+      border-right: 0;
+    }
+
+    .toolbar-tab:hover,
+    .toolbar-tab.active {
+      background: #2c3442;
+      color: #ffffff;
+    }
+
+    .toolbar-tab .muted {
+      color: #b8c3d5;
+    }
+
+    .map-container {
+      background: #131a2a;
+      border: 1px solid #253040;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+
+    .map-search-planks {
+      display: flex;
+      gap: 8px;
+      left: 16px;
+      max-width: calc(100% - 112px);
+      opacity: 0;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      pointer-events: none;
+      position: absolute;
+      right: 92px;
+      top: 16px;
+      transform: translateY(-8px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 10;
+    }
+
+    .app-container.search-running .map-search-planks {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .search-plank {
+      align-items: center;
+      background: #24314d;
+      border: 1px solid #385179;
+      border-radius: 16px;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.32);
+      color: #cdd9ee;
+      display: flex;
+      flex: 0 0 auto;
+      gap: 12px;
+      min-height: 44px;
+      padding: 8px 14px;
+    }
+
+    .search-plank.active {
+      border-color: #4c7fe8;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35), 0 10px 22px rgba(0, 0, 0, 0.32);
+    }
+
+    .plank-status {
+      align-items: center;
+      border-radius: 50%;
+      display: flex;
+      flex: 0 0 auto;
+      font-size: 13px;
+      height: 28px;
+      justify-content: center;
+      width: 28px;
+    }
+
+    .plank-status.success {
+      background: #1b4b34;
+      color: #53d66f;
+    }
+
+    .plank-status.progress {
+      background: #4a3a16;
+      color: #f5b918;
+    }
+
+    .plank-status.warning {
+      background: #4f251d;
+      color: #f36b5d;
+    }
+
+    .plank-title {
+      color: #d7e2f7;
+      font-size: 14px;
+      font-weight: 600;
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .plank-count,
+    .plank-collapse {
+      align-items: center;
+      background: #31415f;
+      border-radius: 999px;
+      color: #eef4ff;
+      display: flex;
+      font-size: 13px;
+      font-weight: 700;
+      height: 24px;
+      justify-content: center;
+      min-width: 24px;
+      padding: 0 8px;
+    }
+
+    .plank-collapse {
+      color: #cbd7ec;
+      min-width: 26px;
+    }
+
+    .map-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 10;
+    }
+
+    .map-control-btn {
+      align-items: center;
+      background: #1e2a3f;
+      border: 1px solid #2e3f58;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      color: #b7cef0;
+      cursor: pointer;
+      display: flex;
+      font-size: 18px;
+      height: 40px;
+      justify-content: center;
+      transition: 0.15s;
+      width: 40px;
+    }
+
+    .map-control-btn:hover {
+      background: #253a58;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .search-panel::-webkit-scrollbar,
+    .map-search-planks::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
+    }
+
+    .search-panel::-webkit-scrollbar-thumb,
+    .map-search-planks::-webkit-scrollbar-thumb {
+      background: #2e405b;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 10px;
+      }
+
+      .app-container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .search-panel,
+      .app-container.search-running .search-panel {
+        min-height: auto;
+        padding: 16px;
+        width: 100%;
+      }
+
+      .app-container.search-running .panel-body {
+        display: flex;
+      }
+
+      .app-container.search-running .collapsed-search-rail {
+        display: none;
+      }
+
+      .map-container {
+        min-height: 480px;
+      }
+
+      .map-search-toolbar {
+        width: 100%;
+      }
+
+      .toolbar-tab {
+        flex: 1 1 50%;
+        justify-content: center;
+      }
+
+      .map-search-planks {
+        max-width: calc(100% - 32px);
+        right: 16px;
+        top: 66px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <aside class="search-panel">
+    <div class="collapsed-search-rail" id="expandSearchPanel" title="Развернуть поиск">
+      <i class="fas fa-magnifying-glass"></i>
+      <span>Поиск ТС</span>
+      <i class="fas fa-chevron-right"></i>
+    </div>
+
+    <div class="panel-body">
+      <h2><i class="fas fa-car-side"></i> Поиск по ТС</h2>
+
+      <div class="title-row">
+        <div class="field-group">
+          <label for="queryName">Название запроса</label>
+          <input id="queryName" type="text" value="Поиск ТС_10.04.26_11.11">
+        </div>
+        <button class="favorite-btn" id="favoriteBtn" type="button" aria-label="Добавить в избранное">
+          <i class="far fa-star"></i>
+        </button>
+      </div>
+
+      <div class="divider"></div>
+
+      <section class="collapsible-section" id="sectionParams">
+        <div class="section-header" data-section-toggle="sectionParams">
+          <span class="section-title"><i class="fas fa-file-alt"></i> Параметры</span>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-content">
+          <div class="field-group">
+            <label for="plateNumber">Номер</label>
+            <input type="text" placeholder="А123ВС 177" id="plateNumber">
+            <div class="checkbox-row">
+              <input type="checkbox" id="partialNumber">
+              <label for="partialNumber">Частичный номер / Без номера</label>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="plateType">Тип номера</label>
+            <select id="plateType">
+              <option>Гражданский</option>
+              <option>Транзит</option>
+              <option>Дипломатический</option>
+              <option selected>Военный</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="country">Страна</label>
+            <select id="country">
+              <option>Россия</option>
+              <option selected>Беларусь</option>
+              <option>Казахстан</option>
+              <option>Армения</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="collapsible-section" id="sectionChars">
+        <div class="section-header" data-section-toggle="sectionChars">
+          <span class="section-title"><i class="fas fa-truck"></i> Характеристики</span>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-content">
+          <div class="field-group">
+            <label>Тип ТС</label>
+            <div class="ts-types-compact">
+              <button class="ts-chip active" type="button" data-type="all"><i class="fas fa-globe"></i>Все</button>
+              <button class="ts-chip" type="button" data-type="car"><i class="fas fa-car"></i>Легковой</button>
+              <button class="ts-chip" type="button" data-type="truck"><i class="fas fa-truck"></i>Грузовик</button>
+              <button class="ts-chip" type="button" data-type="bus"><i class="fas fa-bus"></i>Автобус</button>
+              <button class="ts-chip" type="button" data-type="moto"><i class="fas fa-motorcycle"></i>Мото</button>
+              <button class="ts-chip" type="button" data-type="commercial"><i class="fas fa-truck-moving"></i>Коммерческий</button>
+            </div>
+          </div>
+          <div class="field-group">
+            <label for="brandSelect">Марка</label>
+            <select id="brandSelect">
+              <option value="any">Любая</option>
+              <option value="audi" selected>Audi</option>
+              <option value="bmw">BMW</option>
+              <option value="mercedes">Mercedes</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="modelSelect">Модель</label>
+            <select id="modelSelect">
+              <option value="any">Любая</option>
+              <option value="a6" selected>A6</option>
+              <option value="q5">Q5</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Цвет</label>
+            <div class="color-chips">
+              <button class="color-chip hatched selected" type="button" data-tooltip="Неопределенный" aria-label="Неопределенный"></button>
+              <button class="color-chip" type="button" style="background: #111827;" data-tooltip="Черный" aria-label="Черный"></button>
+              <button class="color-chip" type="button" style="background: #f1f5f9;" data-tooltip="Белый" aria-label="Белый"></button>
+              <button class="color-chip" type="button" style="background: #b91c1c;" data-tooltip="Красный" aria-label="Красный"></button>
+              <button class="color-chip" type="button" style="background: #2563eb;" data-tooltip="Синий" aria-label="Синий"></button>
+              <button class="color-chip" type="button" style="background: #16a34a;" data-tooltip="Зеленый" aria-label="Зеленый"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="collapsible-section" id="sectionAreas">
+        <div class="section-header" data-section-toggle="sectionAreas">
+          <span class="section-title"><i class="fas fa-map-marked-alt"></i> Области поиска</span>
+          <i class="fas fa-chevron-down section-toggle"></i>
+        </div>
+        <div class="section-content">
+          <div class="intersection-toggle">
+            <input type="checkbox" id="intersectionToggle">
+            <label for="intersectionToggle">Пересечение областей</label>
+            <span class="toggle-hint"><i class="fas fa-info-circle"></i> Искать в пересечении</span>
+          </div>
+
+          <div class="area-blocks" id="areaBlocksContainer">
+            <div class="area-block" data-area="1" id="area1">
+              <div class="area-header">
+                <span class="area-color red"></span>
+                <span class="area-title">Блок 1</span>
+                <button class="area-remove" type="button" data-remove-area="1" aria-label="Удалить блок 1"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="area-content">
+                <label for="period1">Период</label>
+                <input id="period1" type="text" class="period-input" value="05.04.2024 00:00 - 20.04.2024 23:59">
+              </div>
+            </div>
+
+            <div class="area-block" data-area="2" id="area2">
+              <div class="area-header">
+                <span class="area-color green"></span>
+                <span class="area-title">Блок 2</span>
+                <button class="area-remove" type="button" data-remove-area="2" aria-label="Удалить блок 2"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="area-content">
+                <label for="period2">Период</label>
+                <input id="period2" type="text" class="period-input" value="05.04.2024 00:00 - 20.04.2024 23:59">
+              </div>
+            </div>
+
+            <div class="area-block" data-area="3" id="area3">
+              <div class="area-header">
+                <span class="area-color blue"></span>
+                <span class="area-title">Блок 3</span>
+                <button class="area-remove" type="button" data-remove-area="3" aria-label="Удалить блок 3"><i class="fas fa-times"></i></button>
+              </div>
+              <div class="area-content">
+                <label for="period3">Период</label>
+                <input id="period3" type="text" class="period-input" value="06.04.2024 08:00 - 22.04.2024 20:00">
+              </div>
+            </div>
+          </div>
+
+          <button class="add-area-btn" type="button" id="addAreaBtn">
+            <i class="fas fa-plus-circle"></i> Добавить область
+          </button>
+        </div>
+      </section>
+
+      <div class="panel-footer">
+        <button class="btn-apply" id="runSearchBtn" type="button">
+          <i class="fas fa-search"></i> Запустить поиск
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="map-column">
+    <nav class="map-search-toolbar" aria-label="Панель поиска над картой">
+      <button class="toolbar-tab active" type="button"><span class="muted">Поиск...</span></button>
+      <button class="toolbar-tab" type="button">Тэг</button>
+      <button class="toolbar-tab" type="button">Иерархия</button>
+      <button class="toolbar-tab" type="button">Управляемое</button>
+    </nav>
+
+    <section class="map-container">
+      <div id="map"></div>
+
+      <div class="map-search-planks" id="mapSearchPlanks" aria-live="polite"></div>
+
+      <div class="map-controls">
+        <button class="map-control-btn" id="zoomInBtn" type="button" aria-label="Приблизить"><i class="fas fa-plus"></i></button>
+        <button class="map-control-btn" id="zoomOutBtn" type="button" aria-label="Отдалить"><i class="fas fa-minus"></i></button>
+        <button class="map-control-btn" id="locateBtn" type="button" aria-label="Мое местоположение"><i class="fas fa-location-dot"></i></button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  (function() {
+    const appContainer = document.getElementById("appContainer");
+    const charsSection = document.getElementById("sectionChars");
+    const partialCheckbox = document.getElementById("partialNumber");
+    const planksContainer = document.getElementById("mapSearchPlanks");
+    const queryNameInput = document.getElementById("queryName");
+
+    document.getElementById("favoriteBtn").addEventListener("click", function() {
+      const icon = this.querySelector("i");
+      this.classList.toggle("active");
+      icon.className = this.classList.contains("active") ? "fas fa-star" : "far fa-star";
+    });
+
+    document.querySelectorAll("[data-section-toggle]").forEach(header => {
+      header.addEventListener("click", function() {
+        document.getElementById(this.dataset.sectionToggle).classList.toggle("collapsed");
+      });
+    });
+
+    partialCheckbox.addEventListener("change", function() {
+      charsSection.classList.toggle("collapsed", this.checked);
+    });
+
+    document.querySelectorAll(".ts-chip").forEach(chip => {
+      chip.addEventListener("click", function() {
+        document.querySelectorAll(".ts-chip").forEach(item => item.classList.remove("active"));
+        this.classList.add("active");
+      });
+    });
+
+    document.querySelectorAll(".color-chip").forEach(chip => {
+      chip.addEventListener("click", function() {
+        document.querySelectorAll(".color-chip").forEach(item => item.classList.remove("selected"));
+        this.classList.add("selected");
+      });
+    });
+
+    document.getElementById("expandSearchPanel").addEventListener("click", function() {
+      appContainer.classList.remove("search-running");
+      setTimeout(() => map.invalidateSize(), 260);
+    });
+
+    const map = L.map("map").setView([55.7558, 37.6173], 11);
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
+    }).addTo(map);
+
+    const circles = [
+      { id: 1, center: [55.78, 37.58], radius: 2500, color: "#ef4444" },
+      { id: 2, center: [55.73, 37.65], radius: 2000, color: "#22c55e" },
+      { id: 3, center: [55.70, 37.70], radius: 2200, color: "#3b82f6" }
+    ];
+
+    const mapCircles = [];
+
+    circles.forEach(area => {
+      const circle = L.circle(area.center, {
+        color: area.color,
+        fillColor: area.color,
+        fillOpacity: 0.15,
+        interactive: true,
+        radius: area.radius,
+        weight: 2
+      }).addTo(map);
+
+      circle.bindPopup("<b>Область " + area.id + "</b>");
+      mapCircles.push({ id: area.id, circle: circle });
+    });
+
+    function updateMapCircles() {
+      mapCircles.forEach(({ id, circle }) => {
+        const area = document.getElementById("area" + id);
+        const visible = area && !area.classList.contains("removed");
+        circle.setStyle({
+          fillOpacity: visible ? 0.15 : 0,
+          opacity: visible ? 1 : 0
+        });
+      });
+    }
+
+    function removeArea(areaId) {
+      const area = document.getElementById("area" + areaId);
+      if (area) {
+        area.classList.add("removed");
+        updateMapCircles();
+      }
+    }
+
+    document.getElementById("areaBlocksContainer").addEventListener("click", function(event) {
+      const removeButton = event.target.closest("[data-remove-area]");
+      if (removeButton) {
+        removeArea(removeButton.dataset.removeArea);
+      }
+    });
+
+    let nextAreaId = 4;
+    const colors = ["#f97316", "#a855f7", "#ec4899", "#14b8a6"];
+
+    document.getElementById("addAreaBtn").addEventListener("click", function() {
+      const container = document.getElementById("areaBlocksContainer");
+      const colorIndex = (nextAreaId - 1) % colors.length;
+      const color = colors[colorIndex];
+      const colorClass = "area-color-" + nextAreaId;
+
+      if (!document.getElementById("style-" + colorClass)) {
+        const style = document.createElement("style");
+        style.id = "style-" + colorClass;
+        style.textContent = "." + colorClass + " { background: " + color + "; box-shadow: 0 0 10px " + color + "80; }";
+        document.head.appendChild(style);
+      }
+
+      const block = document.createElement("div");
+      block.className = "area-block";
+      block.dataset.area = String(nextAreaId);
+      block.id = "area" + nextAreaId;
+      block.innerHTML = [
+        "<div class=\"area-header\">",
+        "  <span class=\"area-color " + colorClass + "\"></span>",
+        "  <span class=\"area-title\">Блок " + nextAreaId + "</span>",
+        "  <button class=\"area-remove\" type=\"button\" data-remove-area=\"" + nextAreaId + "\" aria-label=\"Удалить блок " + nextAreaId + "\"><i class=\"fas fa-times\"></i></button>",
+        "</div>",
+        "<div class=\"area-content\">",
+        "  <label for=\"period" + nextAreaId + "\">Период</label>",
+        "  <input id=\"period" + nextAreaId + "\" type=\"text\" class=\"period-input\" value=\"05.04.2024 00:00 - 20.04.2024 23:59\">",
+        "</div>"
+      ].join("");
+
+      container.appendChild(block);
+
+      const center = [55.75 + nextAreaId * 0.02, 37.60 + nextAreaId * 0.01];
+      const circle = L.circle(center, {
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.15,
+        interactive: true,
+        radius: 2000,
+        weight: 2
+      }).addTo(map);
+
+      circle.bindPopup("<b>Область " + nextAreaId + "</b>");
+      mapCircles.push({ id: nextAreaId, circle: circle });
+      nextAreaId++;
+    });
+
+    function getActiveAreas() {
+      return Array.from(document.querySelectorAll(".area-block:not(.removed)"));
+    }
+
+    function createSearchPlank(areaCount, intersection) {
+      const title = queryNameInput.value.trim() || "Поиск ТС";
+      const existingActive = planksContainer.querySelector(".search-plank.active");
+      if (existingActive) {
+        existingActive.classList.remove("active");
+      }
+
+      const plank = document.createElement("div");
+      plank.className = "search-plank active";
+      plank.title = intersection ? "Поиск по пересечению областей" : "Поиск по объединению областей";
+      plank.innerHTML = [
+        "<span class=\"plank-status success\"><i class=\"fas fa-check\"></i></span>",
+        "<span class=\"plank-title\"></span>",
+        "<span class=\"plank-count\">" + (areaCount * 12 + 11) + "</span>"
+      ].join("");
+      plank.querySelector(".plank-title").textContent = title;
+
+      planksContainer.prepend(plank);
+    }
+
+    document.getElementById("runSearchBtn").addEventListener("click", function() {
+      const activeAreas = getActiveAreas();
+      const intersection = document.getElementById("intersectionToggle").checked;
+
+      if (activeAreas.length === 0) {
+        alert("Нет активных областей для поиска");
+        return;
+      }
+
+      createSearchPlank(activeAreas.length, intersection);
+      appContainer.classList.add("search-running");
+      setTimeout(() => map.invalidateSize(), 260);
+    });
+
+    document.getElementById("zoomInBtn").addEventListener("click", () => map.zoomIn());
+    document.getElementById("zoomOutBtn").addEventListener("click", () => map.zoomOut());
+    document.getElementById("locateBtn").addEventListener("click", () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+          map.setView([position.coords.latitude, position.coords.longitude], 14);
+        });
+      } else {
+        alert("Геолокация недоступна");
+      }
+    });
+
+    updateMapCircles();
+  })();
+</script>
+</body>
+</html>
