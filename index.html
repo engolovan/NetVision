@@ -117,6 +117,16 @@
       display: flex;
     }
 
+    .app-container.query-select-mode,
+    .app-container.history-mode {
+      gap: 0;
+    }
+
+    .app-container.query-select-mode .search-panel,
+    .app-container.history-mode .search-panel {
+      display: none;
+    }
+
     .divider {
       background: #23324a;
       height: 1px;
@@ -685,6 +695,427 @@
       min-width: 26px;
     }
 
+    .map-query-selector {
+      display: none;
+      left: 16px;
+      max-width: 360px;
+      position: absolute;
+      top: 16px;
+      width: calc(100% - 112px);
+      z-index: 11;
+    }
+
+    .app-container.query-select-mode .map-query-selector {
+      display: block;
+    }
+
+    .query-block {
+      background: #131a2a;
+      border: 1px solid #253040;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(75, 130, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      align-items: center;
+      border-bottom: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      padding: 18px 20px;
+      transition: background 0.15s;
+      user-select: none;
+    }
+
+    .accordion-header:hover {
+      background: #1a2338;
+    }
+
+    .accordion-header.active {
+      border-bottom-color: #253a55;
+    }
+
+    .header-title {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+    }
+
+    .header-title i {
+      color: #3b82f6;
+      font-size: 20px;
+      width: 24px;
+    }
+
+    .header-title span {
+      color: #eef4ff;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .accordion-icon {
+      color: #7c95b5;
+      font-size: 18px;
+      transition: transform 0.25s;
+    }
+
+    .accordion-header.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      background: #0f1622;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .accordion-content-inner {
+      padding: 0 0 16px;
+    }
+
+    .query-search-field {
+      padding: 16px 20px 8px;
+    }
+
+    .query-search-input {
+      align-items: center;
+      background: #1e2a3f;
+      border: 1.5px solid #2e3f58;
+      border-radius: 16px;
+      display: flex;
+      padding: 4px 4px 4px 16px;
+    }
+
+    .query-search-input i {
+      color: #5f8ac0;
+      font-size: 16px;
+    }
+
+    .query-search-input input {
+      background: transparent;
+      border: 0;
+      color: #ecf2ff;
+      flex: 1;
+      font-family: "Inter", sans-serif;
+      font-size: 15px;
+      outline: none;
+      padding: 12px 10px;
+    }
+
+    .query-search-input input::placeholder {
+      color: #7b8faa;
+      font-weight: 400;
+    }
+
+    .query-search-input button {
+      background: #2a3e60;
+      border: 0;
+      border-radius: 12px;
+      color: #cfdef5;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: 4px;
+      padding: 8px 16px;
+      transition: 0.15s;
+    }
+
+    .query-search-input button:hover {
+      background: #3b5a84;
+      color: white;
+    }
+
+    .query-list {
+      list-style: none;
+      margin-top: 8px;
+    }
+
+    .query-item {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      border-left: 3px solid transparent;
+      color: #cfdef5;
+      cursor: pointer;
+      display: flex;
+      font-family: "Inter", sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 10px 20px;
+      text-align: left;
+      transition: background 0.12s;
+      width: 100%;
+    }
+
+    .query-item i {
+      color: #5f8ac0;
+      font-size: 18px;
+      margin-right: 12px;
+      width: 24px;
+    }
+
+    .query-item:hover,
+    .query-item.active {
+      background: #1a3150;
+      border-left-color: #3b82f6;
+      color: white;
+    }
+
+    .query-item.active i {
+      color: #90b4ff;
+    }
+
+    .query-divider {
+      background: #253a55;
+      height: 1px;
+      margin: 12px 20px;
+      opacity: 0.5;
+    }
+
+    .history-button-wrapper {
+      padding: 12px 20px 4px;
+    }
+
+    .btn-history {
+      align-items: center;
+      background: #1f2c41;
+      border: 1.5px solid #314a67;
+      border-radius: 40px;
+      color: #b7cef0;
+      cursor: pointer;
+      display: flex;
+      font-size: 15px;
+      font-weight: 500;
+      gap: 10px;
+      justify-content: center;
+      padding: 12px 18px;
+      transition: 0.15s;
+      width: 100%;
+    }
+
+    .btn-history i {
+      color: #5f9eff;
+      font-size: 16px;
+    }
+
+    .btn-history:hover {
+      background: #273c5a;
+      border-color: #3b82f6;
+      color: white;
+    }
+
+    .history-panel {
+      background: rgba(12, 17, 29, 0.84);
+      display: none;
+      inset: 0;
+      overflow: auto;
+      padding: 24px;
+      position: absolute;
+      z-index: 12;
+    }
+
+    .app-container.history-mode .history-panel {
+      display: block;
+    }
+
+    .history-container {
+      background: #131a2a;
+      border: 1px solid #253040;
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(75, 130, 255, 0.1);
+      margin: 0 auto;
+      max-width: 1240px;
+      padding: 28px;
+      width: 100%;
+    }
+
+    .history-header {
+      align-items: center;
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .history-header h1 {
+      align-items: center;
+      color: #eef4ff;
+      display: flex;
+      font-size: 26px;
+      font-weight: 600;
+      gap: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .history-header h1 i {
+      color: #3b82f6;
+    }
+
+    .history-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .history-table {
+      border-collapse: collapse;
+      min-width: 980px;
+      width: 100%;
+    }
+
+    .history-table th {
+      border-bottom: 1px solid #2a3e58;
+      color: #b0c6e5;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      padding: 14px 8px 14px 12px;
+      text-align: left;
+      text-transform: uppercase;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .history-table td {
+      border-bottom: 1px solid #1f2e45;
+      color: #cfdef5;
+      padding: 14px 8px 14px 12px;
+      vertical-align: middle;
+    }
+
+    .history-table tr:hover td {
+      background: #1a253b;
+    }
+
+    .history-table input[type="checkbox"] {
+      accent-color: #3b82f6;
+      cursor: pointer;
+      height: 18px;
+      width: 18px;
+    }
+
+    .favorite-star {
+      color: #5a7290;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .favorite-star.fas {
+      color: #fbbf24;
+    }
+
+    .status-icon {
+      font-size: 18px;
+    }
+
+    .status-done {
+      color: #22c55e;
+    }
+
+    .status-progress {
+      color: #eab308;
+    }
+
+    .status-error {
+      color: #ef4444;
+    }
+
+    .history-name-cell {
+      color: #e0edff;
+      font-weight: 600;
+      min-width: 180px;
+    }
+
+    .result-badge {
+      background: #1e4a2e;
+      border: 1px solid #22c55e;
+      border-radius: 30px;
+      color: #22c55e;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 12px;
+    }
+
+    .history-type-cell {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      min-width: 130px;
+    }
+
+    .history-type-cell i {
+      color: #4b7bec;
+      width: 20px;
+    }
+
+    .history-period-cell {
+      color: #b0c6e5;
+      min-width: 250px;
+    }
+
+    .history-params-cell {
+      color: #b0c6e5;
+      font-size: 13px;
+      min-width: 230px;
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+      margin-top: 28px;
+    }
+
+    .btn {
+      border-radius: 40px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 12px 32px;
+      transition: 0.15s;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      border: 0;
+      color: white;
+    }
+
+    .btn-primary:disabled {
+      background: #4a5e7e;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1.5px solid #334a66;
+      color: #b9cef0;
+    }
+
+    .btn-danger {
+      background: transparent;
+      border: 1.5px solid #7a2e2e;
+      color: #ef4444;
+    }
+
+    .btn-danger:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .btn-danger:not(:disabled):hover {
+      background: #3a1f1f;
+      border-color: #ef4444;
+    }
+
+    .empty-message {
+      color: #7c95b5;
+      padding: 40px;
+      text-align: center;
+    }
+
     .map-controls {
       display: flex;
       flex-direction: column;
@@ -776,7 +1207,7 @@
   </style>
 </head>
 <body>
-<div class="app-container" id="appContainer">
+<div class="app-container query-select-mode" id="appContainer">
   <aside class="search-panel">
     <div class="collapsed-search-rail" id="expandSearchPanel" title="Развернуть поиск">
       <i class="fas fa-magnifying-glass"></i>
@@ -961,7 +1392,83 @@
     <section class="map-container">
       <div id="map"></div>
 
+      <div class="map-query-selector" id="mapQuerySelector">
+        <div class="query-block">
+          <div class="accordion-header active" id="queryAccordionToggle">
+            <div class="header-title">
+              <i class="fas fa-magnifying-glass"></i>
+              <span>Искать по запросу</span>
+            </div>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+          </div>
+
+          <div class="accordion-content" id="queryAccordionContent">
+            <div class="accordion-content-inner">
+              <div class="query-search-field">
+                <div class="query-search-input">
+                  <i class="fas fa-sliders-h"></i>
+                  <input type="text" placeholder="Введите название или номер" id="searchQueryInput">
+                  <button id="clearSearchBtn" type="button" title="Очистить">x</button>
+                </div>
+              </div>
+
+              <ul class="query-list">
+                <li>
+                  <button class="query-item active" type="button" id="openVehicleSearchBtn">
+                    <i class="fas fa-car-side"></i> Поиск ТС
+                  </button>
+                </li>
+              </ul>
+
+              <div class="query-divider"></div>
+
+              <div class="history-button-wrapper">
+                <button class="btn-history" id="historyBtn" type="button">
+                  <i class="fas fa-history"></i>
+                  История запросов
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="map-search-planks" id="mapSearchPlanks" aria-live="polite"></div>
+
+      <div class="history-panel" id="historyPanel">
+        <div class="history-container">
+          <div class="history-header">
+            <h1><i class="fas fa-history"></i> История запросов</h1>
+            <button class="btn btn-secondary" id="historyBackBtn" type="button">К выбору поиска</button>
+          </div>
+
+          <div class="history-table-wrapper">
+            <table class="history-table" id="historyTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllHistoryCheckbox" aria-label="Выбрать все запросы"></th>
+                  <th><i class="fas fa-star"></i></th>
+                  <th>Статус</th>
+                  <th>Имя поиска</th>
+                  <th>Результат</th>
+                  <th>Тип</th>
+                  <th>Период</th>
+                  <th>Параметры</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+          </div>
+
+          <div class="history-actions">
+            <button class="btn btn-danger" id="deleteHistoryBtn" type="button" disabled>
+              <i class="fas fa-trash-can"></i> Удалить
+            </button>
+            <button class="btn btn-secondary" id="closeHistoryBtn" type="button">Закрыть</button>
+            <button class="btn btn-primary" id="applyHistoryBtn" type="button" disabled>Применить</button>
+          </div>
+        </div>
+      </div>
 
       <div class="map-controls">
         <button class="map-control-btn" id="zoomInBtn" type="button" aria-label="Приблизить"><i class="fas fa-plus"></i></button>
@@ -980,6 +1487,141 @@
     const partialCheckbox = document.getElementById("partialNumber");
     const planksContainer = document.getElementById("mapSearchPlanks");
     const queryNameInput = document.getElementById("queryName");
+    const queryAccordionToggle = document.getElementById("queryAccordionToggle");
+    const queryAccordionContent = document.getElementById("queryAccordionContent");
+    const searchQueryInput = document.getElementById("searchQueryInput");
+    const historyTableBody = document.getElementById("historyTableBody");
+    const applyHistoryBtn = document.getElementById("applyHistoryBtn");
+    const deleteHistoryBtn = document.getElementById("deleteHistoryBtn");
+    const selectAllHistoryCheckbox = document.getElementById("selectAllHistoryCheckbox");
+
+    const historyQueries = [
+      {
+        id: 1,
+        name: "Поиск ТС_10.04.26_11.11",
+        period: "05.04.2024 16:16 - 20.04.2024 23:59",
+        status: "done",
+        favorite: true,
+        params: "Легковой, X433CA163, Lada, Priora",
+        resultCount: 47
+      },
+      {
+        id: 2,
+        name: "Поиск по ул. Ленина",
+        period: "05.04.2024 10:30 - 20.04.2024 10:30",
+        status: "progress",
+        favorite: false,
+        params: "Audi, A6, частичный номер",
+        resultCount: null
+      },
+      {
+        id: 3,
+        name: "Ночной поиск ТС",
+        period: "06.04.2024 22:00 - 07.04.2024 06:00",
+        status: "error",
+        favorite: false,
+        params: "Военный номер, Беларусь",
+        resultCount: null
+      },
+      {
+        id: 4,
+        name: "Поиск по МКАД",
+        period: "15.04.2026 08:20 - 15.04.2026 20:20",
+        status: "done",
+        favorite: true,
+        params: "Любая марка, белый цвет",
+        resultCount: 12
+      }
+    ];
+
+    function setMode(mode) {
+      appContainer.classList.remove("query-select-mode", "history-mode", "search-running");
+      if (mode === "query") {
+        appContainer.classList.add("query-select-mode");
+      } else if (mode === "history") {
+        appContainer.classList.add("history-mode");
+      } else if (mode === "running") {
+        appContainer.classList.add("search-running");
+      }
+
+      setTimeout(() => map.invalidateSize(), 260);
+    }
+
+    function openSearchForm(name) {
+      if (name) {
+        queryNameInput.value = name;
+      }
+      setMode("form");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function getStatusIcon(status) {
+      if (status === "done") {
+        return "<i class=\"fas fa-circle-check status-icon status-done\" title=\"Выполнен\"></i>";
+      }
+      if (status === "progress") {
+        return "<i class=\"fas fa-spinner status-icon status-progress\" title=\"В процессе\"></i>";
+      }
+      return "<i class=\"fas fa-circle-exclamation status-icon status-error\" title=\"Ошибка\"></i>";
+    }
+
+    function getResultDisplay(query) {
+      if (query.status === "done" && query.resultCount !== null && query.resultCount !== undefined) {
+        return "<span class=\"result-badge\">" + query.resultCount + "</span>";
+      }
+      return "<span style=\"color: #5a7290;\">-</span>";
+    }
+
+    function getSelectedHistoryIds() {
+      return Array.from(document.querySelectorAll(".history-row-checkbox:checked")).map(checkbox => Number(checkbox.value));
+    }
+
+    function updateHistoryButtonsState() {
+      const selectedCount = getSelectedHistoryIds().length;
+      applyHistoryBtn.disabled = selectedCount !== 1;
+      deleteHistoryBtn.disabled = selectedCount === 0;
+      selectAllHistoryCheckbox.checked = historyQueries.length > 0 && selectedCount === historyQueries.length;
+      selectAllHistoryCheckbox.indeterminate = selectedCount > 0 && selectedCount < historyQueries.length;
+    }
+
+    function renderHistory() {
+      if (historyQueries.length === 0) {
+        historyTableBody.innerHTML = "<tr><td colspan=\"8\" class=\"empty-message\">Нет сохраненных запросов</td></tr>";
+        updateHistoryButtonsState();
+        return;
+      }
+
+      historyTableBody.innerHTML = historyQueries.map(query => [
+        "<tr>",
+        "  <td><input type=\"checkbox\" class=\"history-row-checkbox\" value=\"" + query.id + "\" aria-label=\"Выбрать запрос\"></td>",
+        "  <td><span class=\"favorite-star " + (query.favorite ? "fas" : "far") + " fa-star\" data-favorite-id=\"" + query.id + "\"></span></td>",
+        "  <td>" + getStatusIcon(query.status) + "</td>",
+        "  <td class=\"history-name-cell\">" + escapeHtml(query.name) + "</td>",
+        "  <td>" + getResultDisplay(query) + "</td>",
+        "  <td class=\"history-type-cell\"><i class=\"fas fa-car-side\"></i> Поиск ТС</td>",
+        "  <td class=\"history-period-cell\">" + escapeHtml(query.period) + "</td>",
+        "  <td class=\"history-params-cell\">" + escapeHtml(query.params) + "</td>",
+        "</tr>"
+      ].join("")).join("");
+
+      document.querySelectorAll(".history-row-checkbox").forEach(checkbox => {
+        checkbox.addEventListener("change", updateHistoryButtonsState);
+      });
+      updateHistoryButtonsState();
+    }
+
+    function openHistory() {
+      renderHistory();
+      setMode("history");
+    }
 
     document.getElementById("favoriteBtn").addEventListener("click", function() {
       const icon = this.querySelector("i");
@@ -1012,8 +1654,83 @@
     });
 
     document.getElementById("expandSearchPanel").addEventListener("click", function() {
-      appContainer.classList.remove("search-running");
-      setTimeout(() => map.invalidateSize(), 260);
+      setMode("form");
+    });
+
+    queryAccordionToggle.addEventListener("click", function() {
+      const isOpen = queryAccordionToggle.classList.toggle("active");
+      queryAccordionContent.style.maxHeight = isOpen ? queryAccordionContent.scrollHeight + "px" : "0";
+    });
+
+    document.getElementById("clearSearchBtn").addEventListener("click", function(event) {
+      event.stopPropagation();
+      searchQueryInput.value = "";
+      searchQueryInput.focus();
+    });
+
+    document.getElementById("openVehicleSearchBtn").addEventListener("click", function() {
+      openSearchForm(searchQueryInput.value.trim());
+    });
+
+    searchQueryInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        openSearchForm(searchQueryInput.value.trim());
+      }
+    });
+
+    document.getElementById("historyBtn").addEventListener("click", openHistory);
+    document.getElementById("historyBackBtn").addEventListener("click", () => setMode("query"));
+    document.getElementById("closeHistoryBtn").addEventListener("click", () => setMode("query"));
+
+    selectAllHistoryCheckbox.addEventListener("change", function() {
+      document.querySelectorAll(".history-row-checkbox").forEach(checkbox => {
+        checkbox.checked = this.checked;
+      });
+      updateHistoryButtonsState();
+    });
+
+    historyTableBody.addEventListener("click", function(event) {
+      const favorite = event.target.closest("[data-favorite-id]");
+      if (!favorite) {
+        return;
+      }
+
+      const query = historyQueries.find(item => item.id === Number(favorite.dataset.favoriteId));
+      if (query) {
+        query.favorite = !query.favorite;
+        renderHistory();
+      }
+    });
+
+    applyHistoryBtn.addEventListener("click", function() {
+      const selectedIds = getSelectedHistoryIds();
+      if (selectedIds.length !== 1) {
+        return;
+      }
+
+      const selectedQuery = historyQueries.find(query => query.id === selectedIds[0]);
+      if (selectedQuery) {
+        openSearchForm(selectedQuery.name);
+      }
+    });
+
+    deleteHistoryBtn.addEventListener("click", function() {
+      const selectedIds = getSelectedHistoryIds();
+      if (selectedIds.length === 0) {
+        return;
+      }
+
+      if (!confirm("Удалить выбранные поиски (" + selectedIds.length + " шт.)?")) {
+        return;
+      }
+
+      selectedIds.forEach(id => {
+        const index = historyQueries.findIndex(query => query.id === id);
+        if (index !== -1) {
+          historyQueries.splice(index, 1);
+        }
+      });
+      renderHistory();
     });
 
     const map = L.map("map", { zoomControl: false }).setView([55.7558, 37.6173], 11);
@@ -1153,8 +1870,7 @@
       }
 
       createSearchPlank(activeAreas.length, intersection);
-      appContainer.classList.add("search-running");
-      setTimeout(() => map.invalidateSize(), 260);
+      setMode("running");
     });
 
     document.getElementById("zoomInBtn").addEventListener("click", () => map.zoomIn());
@@ -1170,6 +1886,7 @@
     });
 
     updateMapCircles();
+    queryAccordionContent.style.maxHeight = queryAccordionContent.scrollHeight + "px";
   })();
 </script>
 </body>
