@@ -597,14 +597,13 @@
       z-index: 1;
     }
 
-    .map-search-planks {
+    .map-search-top-bar {
+      align-items: flex-start;
       display: flex;
-      gap: 8px;
+      flex-wrap: wrap;
+      gap: 12px;
       left: 16px;
-      max-width: calc(100% - 112px);
       opacity: 0;
-      overflow-x: auto;
-      padding-bottom: 2px;
       pointer-events: none;
       position: absolute;
       right: 92px;
@@ -614,10 +613,171 @@
       z-index: 10;
     }
 
-    .app-container.search-running .map-search-planks {
+    .app-container.search-running .map-search-top-bar {
       opacity: 1;
       pointer-events: auto;
       transform: translateY(0);
+    }
+
+    .map-query-cards-panel {
+      background: #131a2a;
+      border: 1px solid #253040;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(75, 130, 255, 0.1);
+      flex: 0 1 auto;
+      max-width: 100%;
+      padding: 14px 16px;
+    }
+
+    .map-query-cards-panel .search-label {
+      color: #b0c6e5;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      margin-bottom: 12px;
+    }
+
+    .cards-row {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .query-card {
+      background: #1a2338;
+      border: 1px solid #2a3e58;
+      border-radius: 16px;
+      cursor: pointer;
+      flex: 1 1 180px;
+      min-width: 180px;
+      transition: 0.15s;
+    }
+
+    .query-card:hover {
+      background: #1e2a42;
+      border-color: #3b5270;
+    }
+
+    .query-card.expanded {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    .query-card .card-header {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+
+    .query-card .card-icon {
+      align-items: center;
+      background: #1e2f4a;
+      border-radius: 12px;
+      color: #5f9eff;
+      display: flex;
+      flex-shrink: 0;
+      font-size: 18px;
+      height: 40px;
+      justify-content: center;
+      width: 40px;
+    }
+
+    .query-card .card-info {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .query-card .card-name {
+      color: #eef4ff;
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .query-card .status-chip {
+      align-items: center;
+      background: #1e2f4a;
+      border-radius: 30px;
+      display: inline-flex;
+      font-size: 11px;
+      font-weight: 500;
+      gap: 5px;
+      padding: 3px 8px;
+      width: fit-content;
+    }
+
+    .query-card .status-chip.status-progress {
+      color: #eab308;
+    }
+
+    .query-card .status-chip.status-error {
+      color: #ef4444;
+    }
+
+    .query-card .status-chip.status-count {
+      color: #22c55e;
+    }
+
+    .query-card .card-actions {
+      background: #0f1622;
+      border-radius: 0 0 16px 16px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease-out;
+    }
+
+    .query-card.expanded .card-actions {
+      max-height: 220px;
+    }
+
+    .query-card .actions-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 14px 14px;
+    }
+
+    .query-card .action-item {
+      align-items: center;
+      border-radius: 8px;
+      color: #cfdef5;
+      cursor: pointer;
+      display: flex;
+      font-size: 13px;
+      font-weight: 500;
+      gap: 10px;
+      padding: 8px 10px;
+      transition: 0.1s;
+    }
+
+    .query-card .action-item i {
+      color: #7c95b5;
+      width: 18px;
+    }
+
+    .query-card .action-item:hover {
+      background: #253a58;
+      color: white;
+    }
+
+    .query-card .action-item:hover i {
+      color: #a0c0ff;
+    }
+
+    .map-search-planks {
+      display: flex;
+      flex: 1 1 auto;
+      gap: 8px;
+      min-width: 0;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .search-plank {
@@ -1149,13 +1309,15 @@
     }
 
     .search-panel::-webkit-scrollbar,
-    .map-search-planks::-webkit-scrollbar {
+    .map-search-planks::-webkit-scrollbar,
+    .cards-row::-webkit-scrollbar {
       height: 4px;
       width: 4px;
     }
 
     .search-panel::-webkit-scrollbar-thumb,
-    .map-search-planks::-webkit-scrollbar-thumb {
+    .map-search-planks::-webkit-scrollbar-thumb,
+    .cards-row::-webkit-scrollbar-thumb {
       background: #2e405b;
       border-radius: 4px;
     }
@@ -1198,10 +1360,20 @@
         justify-content: center;
       }
 
-      .map-search-planks {
-        max-width: calc(100% - 32px);
+      .map-search-top-bar {
+        flex-direction: column;
+        left: 16px;
         right: 16px;
         top: 66px;
+      }
+
+      .cards-row {
+        flex-direction: column;
+      }
+
+      .query-card {
+        flex: 1 1 auto;
+        min-width: 0;
       }
     }
   </style>
@@ -1433,7 +1605,13 @@
         </div>
       </div>
 
-      <div class="map-search-planks" id="mapSearchPlanks" aria-live="polite"></div>
+      <div class="map-search-top-bar" id="mapSearchTopBar">
+        <div class="map-query-cards-panel">
+          <div class="search-label">Искать по запросу</div>
+          <div class="cards-row" id="queryCardsRow"></div>
+        </div>
+        <div class="map-search-planks" id="mapSearchPlanks" aria-live="polite"></div>
+      </div>
 
       <div class="history-panel" id="historyPanel">
         <div class="history-container">
@@ -1486,6 +1664,7 @@
     const charsSection = document.getElementById("sectionChars");
     const partialCheckbox = document.getElementById("partialNumber");
     const planksContainer = document.getElementById("mapSearchPlanks");
+    const queryCardsRow = document.getElementById("queryCardsRow");
     const queryNameInput = document.getElementById("queryName");
     const queryAccordionToggle = document.getElementById("queryAccordionToggle");
     const queryAccordionContent = document.getElementById("queryAccordionContent");
@@ -1507,21 +1686,23 @@
       },
       {
         id: 2,
-        name: "Поиск по ул. Ленина",
+        name: "Автомобиль 24",
         period: "05.04.2024 10:30 - 20.04.2024 10:30",
         status: "progress",
         favorite: false,
         params: "Audi, A6, частичный номер",
-        resultCount: null
+        resultCount: null,
+        icon: "vehicle"
       },
       {
         id: 3,
-        name: "Ночной поиск ТС",
+        name: "Поиск грузовика",
         period: "06.04.2024 22:00 - 07.04.2024 06:00",
         status: "error",
         favorite: false,
         params: "Военный номер, Беларусь",
-        resultCount: null
+        resultCount: null,
+        icon: "truck"
       },
       {
         id: 4,
@@ -1534,6 +1715,129 @@
       }
     ];
 
+    const queryCardIcons = {
+      vehicle: "fa-car-side",
+      truck: "fa-truck",
+      face: "fa-user-secret"
+    };
+
+    let nextQueryId = 5;
+
+    function getQueryCardIcon(query) {
+      if (query.icon && queryCardIcons[query.icon]) {
+        return queryCardIcons[query.icon];
+      }
+      return "fa-car-side";
+    }
+
+    function getQueryCardStatus(query) {
+      if (query.status === "progress") {
+        return "<div class=\"status-chip status-progress\"><i class=\"fas fa-spinner fa-pulse\"></i> В процессе</div>";
+      }
+      if (query.status === "error") {
+        return "<div class=\"status-chip status-error\"><i class=\"fas fa-circle-exclamation\"></i> Ошибка</div>";
+      }
+      if (query.status === "done" && query.resultCount !== null && query.resultCount !== undefined) {
+        return "<div class=\"status-chip status-count\"><i class=\"fas fa-file-alt\"></i> " + query.resultCount + " объектов</div>";
+      }
+      return "<div class=\"status-chip status-progress\"><i class=\"fas fa-spinner fa-pulse\"></i> В процессе</div>";
+    }
+
+    function renderQueryCards() {
+      queryCardsRow.innerHTML = historyQueries.map(query => [
+        "<div class=\"query-card\" data-query-id=\"" + query.id + "\">",
+        "  <div class=\"card-header\">",
+        "    <div class=\"card-icon\"><i class=\"fas " + getQueryCardIcon(query) + "\"></i></div>",
+        "    <div class=\"card-info\">",
+        "      <span class=\"card-name\">" + escapeHtml(query.name) + "</span>",
+        "      " + getQueryCardStatus(query),
+        "    </div>",
+        "  </div>",
+        "  <div class=\"card-actions\">",
+        "    <div class=\"actions-inner\">",
+        "      <div class=\"action-item\" data-action=\"view\"><i class=\"fas fa-eye\"></i> Смотреть объекты</div>",
+        "      <div class=\"action-item\" data-action=\"hide\"><i class=\"fas fa-eye-slash\"></i> Скрыть</div>",
+        "      <div class=\"action-item\" data-action=\"duplicate\"><i class=\"fas fa-copy\"></i> Продублировать</div>",
+        "      <div class=\"action-item\" data-action=\"delete\"><i class=\"fas fa-trash-can\"></i> Удалить</div>",
+        "    </div>",
+        "  </div>",
+        "</div>"
+      ].join("")).join("");
+    }
+
+    function toggleQueryCard(card) {
+      document.querySelectorAll(".query-card").forEach(item => {
+        if (item !== card) {
+          item.classList.remove("expanded");
+        }
+      });
+      card.classList.toggle("expanded");
+    }
+
+    function handleQueryCardAction(action, queryId) {
+      const query = historyQueries.find(item => item.id === queryId);
+      if (!query) {
+        return;
+      }
+
+      if (action === "view") {
+        openSearchForm(query.name);
+        return;
+      }
+
+      if (action === "duplicate") {
+        historyQueries.unshift({
+          id: nextQueryId++,
+          name: query.name + " (копия)",
+          period: query.period,
+          status: "progress",
+          favorite: false,
+          params: query.params,
+          resultCount: null,
+          icon: query.icon
+        });
+        renderQueryCards();
+        return;
+      }
+
+      if (action === "delete") {
+        const index = historyQueries.findIndex(item => item.id === queryId);
+        if (index !== -1) {
+          historyQueries.splice(index, 1);
+          renderQueryCards();
+        }
+        return;
+      }
+
+      if (action === "hide") {
+        const card = queryCardsRow.querySelector("[data-query-id=\"" + queryId + "\"]");
+        if (card) {
+          card.style.display = "none";
+        }
+      }
+    }
+
+    queryCardsRow.addEventListener("click", function(event) {
+      const actionItem = event.target.closest("[data-action]");
+      if (actionItem) {
+        event.stopPropagation();
+        const card = actionItem.closest(".query-card");
+        handleQueryCardAction(actionItem.dataset.action, Number(card.dataset.queryId));
+        return;
+      }
+
+      const card = event.target.closest(".query-card");
+      if (card) {
+        toggleQueryCard(card);
+      }
+    });
+
+    document.addEventListener("click", function(event) {
+      if (!event.target.closest(".query-card")) {
+        document.querySelectorAll(".query-card").forEach(card => card.classList.remove("expanded"));
+      }
+    });
+
     function setMode(mode) {
       appContainer.classList.remove("query-select-mode", "history-mode", "search-running");
       if (mode === "query") {
@@ -1542,6 +1846,7 @@
         appContainer.classList.add("history-mode");
       } else if (mode === "running") {
         appContainer.classList.add("search-running");
+        renderQueryCards();
       }
 
       setTimeout(() => map.invalidateSize(), 260);
@@ -1840,8 +2145,27 @@
       return Array.from(document.querySelectorAll(".area-block:not(.removed)"));
     }
 
-    function createSearchPlank(areaCount, intersection) {
-      const title = queryNameInput.value.trim() || "Поиск ТС";
+    function upsertRunningQuery(title) {
+      const existing = historyQueries.find(query => query.name === title && query.status === "progress");
+      if (existing) {
+        return existing;
+      }
+
+      const query = {
+        id: nextQueryId++,
+        name: title,
+        period: document.getElementById("period1").value,
+        status: "progress",
+        favorite: document.getElementById("favoriteBtn").classList.contains("active"),
+        params: "Audi, A6, военный номер",
+        resultCount: null,
+        icon: "vehicle"
+      };
+      historyQueries.unshift(query);
+      return query;
+    }
+
+    function createSearchPlank(areaCount, intersection, title) {
       const existingActive = planksContainer.querySelector(".search-plank.active");
       if (existingActive) {
         existingActive.classList.remove("active");
@@ -1851,7 +2175,7 @@
       plank.className = "search-plank active";
       plank.title = intersection ? "Поиск по пересечению областей" : "Поиск по объединению областей";
       plank.innerHTML = [
-        "<span class=\"plank-status success\"><i class=\"fas fa-check\"></i></span>",
+        "<span class=\"plank-status progress\"><i class=\"fas fa-spinner fa-spin\"></i></span>",
         "<span class=\"plank-title\"></span>",
         "<span class=\"plank-count\">" + (areaCount * 12 + 11) + "</span>"
       ].join("");
@@ -1863,13 +2187,15 @@
     document.getElementById("runSearchBtn").addEventListener("click", function() {
       const activeAreas = getActiveAreas();
       const intersection = document.getElementById("intersectionToggle").checked;
+      const title = queryNameInput.value.trim() || "Поиск ТС";
 
       if (activeAreas.length === 0) {
         alert("Нет активных областей для поиска");
         return;
       }
 
-      createSearchPlank(activeAreas.length, intersection);
+      upsertRunningQuery(title);
+      createSearchPlank(activeAreas.length, intersection, title);
       setMode("running");
     });
 
