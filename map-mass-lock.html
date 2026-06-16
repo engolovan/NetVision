@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Карта — массовая блокировка — ППУВ</title>
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --bg-elevated: #141414;
+      --bg-hover: #1c1c1c;
+      --border: #2a2a2a;
+      --text: #e8e8e8;
+      --text-muted: #888;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --success-hover: #16a34a;
+      --warning: #f59e0b;
+      --zone-fill: rgba(59, 130, 246, 0.18);
+      --zone-stroke: rgba(59, 130, 246, 0.85);
+      --map-road: #1e2430;
+      --map-park: #0f1a12;
+      --map-water: #0c1520;
+      --cluster-bg: #1e2430;
+      --cluster-stroke: #3d4a5c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-elevated);
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .header-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
+
+    .map-shell {
+      position: relative;
+      overflow: hidden;
+      background: #080c10;
+    }
+
+    .map-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .map-toolbar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 5;
+    }
+
+    .tool-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .tool-btn:hover { background: var(--bg-hover); color: var(--text); }
+    .tool-btn.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tool-btn svg { width: 18px; height: 18px; }
+
+    .action-panel {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(400px, calc(100% - 32px));
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+      z-index: 20;
+    }
+
+    .action-panel.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(12px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .action-panel.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .panel-close {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .panel-close:hover { background: var(--bg-hover); color: var(--text); }
+
+    .duration-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .duration-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-right: 4px;
+    }
+
+    .duration-preset {
+      padding: 6px 12px;
+      font-size: 0.8125rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .duration-preset:hover { border-color: #444; color: var(--text); }
+    .duration-preset.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent);
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-icon svg {
+      width: 22px;
+      height: 22px;
+      transition: transform 0.2s;
+    }
+
+    .btn-icon:active svg { transform: scale(0.88); }
+
+    .btn-icon.pulse svg {
+      animation: lock-pulse 0.45s ease;
+    }
+
+    @keyframes lock-pulse {
+      0% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.15) rotate(-6deg); }
+      50% { transform: scale(1.22) rotate(6deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .btn-lock {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-lock:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    }
+
+    .btn-unlock {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-unlock:hover {
+      background: var(--success-hover);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    }
+
+    .result-strip {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 1px solid transparent;
+      transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease, padding-top 0.3s ease, border-color 0.3s;
+    }
+
+    .result-strip.visible {
+      max-height: 80px;
+      opacity: 1;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top-color: var(--border);
+    }
+
+    .result-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 6px;
+      border-radius: 6px;
+      background: var(--bg);
+      transform: translateY(8px);
+      opacity: 0;
+    }
+
+    .result-strip.visible .result-item {
+      animation: result-in 0.4s ease forwards;
+    }
+
+    .result-strip.visible .result-item:nth-child(2) { animation-delay: 0.08s; }
+
+    @keyframes result-in {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .result-value {
+      display: block;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-item.success .result-value { color: var(--success); }
+    .result-item.rejected .result-value { color: var(--warning); }
+
+    .result-label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: lowercase;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 24px;
+      right: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      z-index: 5;
+    }
+
+    .legend-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.65rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      color: var(--text-muted);
+    }
+
+    .legend-item:last-child { margin-bottom: 0; }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 120px;
+      right: 24px;
+      max-width: 380px;
+      padding: 12px 18px;
+      background: #1e1e1e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: transform 0.25s, opacity 0.25s;
+      z-index: 200;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.info { border-left: 3px solid var(--accent); }
+
+    .cluster-marker { pointer-events: none; }
+
+    .zone-polygon {
+      fill: var(--zone-fill);
+      stroke: var(--zone-stroke);
+      stroke-width: 2;
+      stroke-dasharray: 8 4;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <h1>Карта наблюдения</h1>
+      <div class="header-meta">
+        <span><span class="dot"></span> RSM подключён</span>
+        <span>ППУВ · приоритет 100</span>
+        <span>Режим: PTZ-блокировка</span>
+      </div>
+    </header>
+
+    <div class="map-shell" id="mapShell">
+      <svg class="map-canvas" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice" aria-label="Карта с кластерами камер">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#151a22" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+
+        <rect width="1200" height="720" fill="#0b0f14"/>
+        <rect width="1200" height="720" fill="url(#grid)"/>
+
+        <rect x="0" y="480" width="1200" height="240" fill="var(--map-water)"/>
+        <ellipse cx="180" cy="140" rx="120" ry="80" fill="var(--map-park)" opacity="0.9"/>
+        <ellipse cx="980" cy="200" rx="90" ry="70" fill="var(--map-park)" opacity="0.9"/>
+        <rect x="0" y="300" width="1200" height="28" fill="var(--map-road)" opacity="0.8"/>
+        <rect x="0" y="420" width="1200" height="22" fill="var(--map-road)" opacity="0.7"/>
+        <rect x="0" y="380" width="24" height="720" fill="var(--map-road)" opacity="0.6"/>
+        <rect x="720" y="0" width="20" height="720" fill="var(--map-road)" opacity="0.6"/>
+        <path d="M 0 180 Q 300 120 600 200 T 1200 160" fill="none" stroke="var(--map-road)" stroke-width="18" opacity="0.5"/>
+
+        <polygon
+          id="selectionZone"
+          class="zone-polygon"
+          points="520,140 780,120 860,280 720,420 480,380 440,220"
+        />
+
+        <g id="clustersLayer"></g>
+      </svg>
+
+      <div class="map-toolbar">
+        <button type="button" class="tool-btn" title="Перемещение" aria-label="Перемещение">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20"/></svg>
+        </button>
+        <button type="button" class="tool-btn active" title="Выделение области (лассо)" aria-label="Лассо">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l6 2 4 6-2 6-6 2-4-6 2-6z"/><circle cx="18" cy="18" r="3"/></svg>
+        </button>
+        <button type="button" class="tool-btn" title="Сбросить выделение" aria-label="Сброс" id="btnClearSelection">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <aside class="action-panel visible" id="actionPanel" aria-live="polite">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Выделенная область</div>
+            <div class="panel-subtitle" id="panelSubtitle">247 камер в выделении</div>
+          </div>
+          <button type="button" class="panel-close" id="btnClosePanel" title="Скрыть панель" aria-label="Закрыть">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="duration-row">
+          <span class="duration-label">Длительность</span>
+          <button type="button" class="duration-preset" data-seconds="3600">1 час</button>
+          <button type="button" class="duration-preset active" data-seconds="28800">Смена</button>
+          <button type="button" class="duration-preset" data-seconds="604800">7 дней</button>
+        </div>
+
+        <div class="actions-row">
+          <button type="button" class="btn-icon btn-lock" id="btnLock" title="Заблокировать" aria-label="Заблокировать">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </button>
+          <button type="button" class="btn-icon btn-unlock" id="btnUnlock" title="Разблокировать" aria-label="Разблокировать">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 019.9-1"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="result-strip" id="resultStrip" aria-live="polite"></div>
+      </aside>
+
+      <div class="legend">
+        <div class="legend-title">Обозначения</div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:var(--zone-fill);border:2px dashed var(--zone-stroke);border-radius:2px"></span>
+          Выделенная область
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:var(--cluster-bg);border:2px solid var(--cluster-stroke)"></span>
+          Кластер камер
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const SELECTION_TOTAL = 247;
+    const FOREIGN_IN_SELECTION = 16;
+    const USER_OWNED_MAX = SELECTION_TOTAL - FOREIGN_IN_SELECTION;
+
+    const CLUSTERS = [
+      { x: 620, y: 280, count: 84 },
+      { x: 200, y: 250, count: 31 },
+      { x: 950, y: 280, count: 52 },
+      { x: 150, y: 420, count: 18 },
+      { x: 880, y: 160, count: 27 },
+      { x: 1050, y: 500, count: 41 },
+      { x: 320, y: 520, count: 36 },
+    ];
+
+    let durationSeconds = 28800;
+    let userOwnedInSelection = 0;
+    let animFrame = null;
+
+    function clusterRadius(count) {
+      return Math.min(36, 18 + Math.log10(count) * 8);
+    }
+
+    function renderClusters() {
+      const layer = document.getElementById("clustersLayer");
+      layer.innerHTML = "";
+
+      CLUSTERS.forEach((cluster) => {
+        const r = clusterRadius(cluster.count);
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", "cluster-marker");
+        g.innerHTML = `
+          <circle cx="${cluster.x}" cy="${cluster.y}" r="${r}" fill="var(--cluster-bg)" stroke="var(--cluster-stroke)" stroke-width="2"/>
+          <text x="${cluster.x}" y="${cluster.y}" text-anchor="middle" dominant-baseline="central"
+            fill="#c8d0dc" font-size="${r > 28 ? 15 : 13}" font-weight="600" font-family="Segoe UI, system-ui, sans-serif">
+            ${cluster.count}
+          </text>
+        `;
+        layer.appendChild(g);
+      });
+    }
+
+    function pulseButton(btn) {
+      btn.classList.remove("pulse");
+      void btn.offsetWidth;
+      btn.classList.add("pulse");
+      btn.addEventListener("animationend", () => btn.classList.remove("pulse"), { once: true });
+    }
+
+    function animateValue(el, target, duration = 700) {
+      const start = performance.now();
+      const from = 0;
+
+      function tick(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(from + (target - from) * eased);
+        if (t < 1) animFrame = requestAnimationFrame(tick);
+      }
+
+      if (animFrame) cancelAnimationFrame(animFrame);
+      animFrame = requestAnimationFrame(tick);
+    }
+
+    function showResult(items) {
+      const strip = document.getElementById("resultStrip");
+      strip.classList.remove("visible");
+      strip.innerHTML = items.map((item) => `
+        <div class="result-item ${item.type}">
+          <span class="result-value" data-target="${item.value}">0</span>
+          <span class="result-label">${item.label}</span>
+        </div>
+      `).join("");
+
+      void strip.offsetWidth;
+      strip.classList.add("visible");
+
+      strip.querySelectorAll(".result-value").forEach((el, i) => {
+        animateValue(el, Number(el.dataset.target), 700 + i * 120);
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.className = "toast show info";
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 4000);
+    }
+
+    document.getElementById("btnLock").addEventListener("click", (e) => {
+      const btn = e.currentTarget;
+      pulseButton(btn);
+
+      const freeToAcquire = USER_OWNED_MAX - userOwnedInSelection;
+      const actualAcquired = Math.max(0, freeToAcquire);
+      const rejected = FOREIGN_IN_SELECTION;
+
+      userOwnedInSelection += actualAcquired;
+
+      showResult([
+        { type: "success", value: actualAcquired, label: "заблокировано" },
+        { type: "rejected", value: rejected, label: "отклонено" },
+      ]);
+    });
+
+    document.getElementById("btnUnlock").addEventListener("click", (e) => {
+      const btn = e.currentTarget;
+      pulseButton(btn);
+
+      const released = userOwnedInSelection;
+      const rejected = FOREIGN_IN_SELECTION;
+
+      userOwnedInSelection = 0;
+
+      showResult([
+        { type: "success", value: released, label: "разблокировано" },
+        { type: "rejected", value: rejected, label: "отклонено" },
+      ]);
+    });
+
+    document.querySelectorAll(".duration-preset").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".duration-preset").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        durationSeconds = Number(btn.dataset.seconds);
+      });
+    });
+
+    document.getElementById("btnClosePanel").addEventListener("click", () => {
+      const panel = document.getElementById("actionPanel");
+      panel.classList.remove("visible");
+      panel.classList.add("hidden");
+    });
+
+    document.getElementById("btnClearSelection").addEventListener("click", () => {
+      showToast("В мок-апе область фиксирована. В продукте — сброс лассо.");
+    });
+
+    renderClusters();
+  </script>
+</body>
+</html>
